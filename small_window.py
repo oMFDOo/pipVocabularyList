@@ -6,7 +6,7 @@ from window_position import move_to_bottom_right, move_to_bottom_left
 from effects import apply_shadow_effect
 
 class SmallWindow(QMainWindow):
-    open_big_window_signal = pyqtSignal()  # 큰 창 열기 요청 신호
+    open_main_window_signal = pyqtSignal()  # 큰 창 열기 요청 신호
 
     def __init__(self, fonts, word_list):
         super().__init__()
@@ -54,7 +54,7 @@ class SmallWindow(QMainWindow):
         home_button.setIconSize(QSize(20, 20))
         home_button.setFixedSize(20, 20)
         home_button.setStyleSheet("border: none;")
-        home_button.clicked.connect(self.request_open_big_window)
+        home_button.clicked.connect(self.request_open_main_window)
         layout.addWidget(home_button, 0, 0, Qt.AlignLeft | Qt.AlignVCenter)
 
         # 빈 칸
@@ -139,9 +139,9 @@ class SmallWindow(QMainWindow):
         )
         self.word_info_label.setText(f"{self.current_index + 1}/{len(self.word_list)}")
 
-    def request_open_big_window(self):
+    def request_open_main_window(self):
         """큰 창 열기 요청 신호 발생"""
-        self.open_big_window_signal.emit()
+        self.open_main_window_signal.emit()
 
     # ============ 윈도우 이동 관련 (드래그) ============ #
     def mousePressEvent(self, event):
