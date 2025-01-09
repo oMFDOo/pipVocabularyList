@@ -62,7 +62,10 @@ class StudyPage(QWidget):
 
         # 2-1) 왼쪽 리스트
         left_box_layout = QVBoxLayout()
-        left_label = QLabel("주제별 추천 단어")
+        
+        self.open_subject_button = QPushButton("주제별 추천 단어")
+        # date_layout.addWidget(self.open_subject_button)
+        # left_label = QLabel("주제별 추천 단어")
         self.list_widget = QListWidget()
         # 단어장 제목 리스트 출력
         for date_str in ["2025.01.12일자 단어!", "2024.12.28", "2024.10.36", "오늘은 열심히 공부!"]:
@@ -70,7 +73,8 @@ class StudyPage(QWidget):
         self.add_button = QPushButton("+")
         self.add_button.setFixedWidth(40)
 
-        left_box_layout.addWidget(left_label)
+        # left_box_layout.addWidget(left_label)
+        left_box_layout.addWidget(self.open_subject_button)
         left_box_layout.addWidget(self.list_widget)
         left_box_layout.addWidget(self.add_button, alignment=Qt.AlignRight)
 
