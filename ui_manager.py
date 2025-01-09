@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
 
         # 1번 칸: 홈 버튼
         home_button = QPushButton(self)
-        home_button.setIcon(QIcon("go_home_back_btn.png"))
+        home_button.setIcon(QIcon("assets/go_home_back_btn.png"))
         home_button.setIconSize(QSize(20, 20))
         home_button.setFixedSize(20, 20)
         home_button.setStyleSheet("border: none;")
@@ -104,7 +104,7 @@ class MainWindow(QMainWindow):
 
         # 4번 칸: 이전 단어 보기 버튼
         prev_button = QPushButton(self)
-        prev_button.setIcon(QIcon("word_previous_btn.png"))
+        prev_button.setIcon(QIcon("assets/word_previous_btn.png"))
         prev_button.setIconSize(QSize(20, 20))
         prev_button.setFixedSize(20, 20)
         prev_button.setStyleSheet("border: none;")
@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
 
         # 6번 칸: 다음 단어 보기 버튼
         next_button = QPushButton(self)
-        next_button.setIcon(QIcon("word_next_btn.png"))
+        next_button.setIcon(QIcon("assets/word_next_btn.png"))
         next_button.setIconSize(QSize(20, 20))
         next_button.setFixedSize(20, 20)
         next_button.setStyleSheet("border: none;")
