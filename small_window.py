@@ -6,7 +6,7 @@ from window_position import move_to_bottom_right, move_to_bottom_left
 from effects import apply_shadow_effect
 
 class SmallWindow(QMainWindow):
-    open_main_window_signal = pyqtSignal()  # 큰 창 열기 요청 신호
+    open_main_window_signal = pyqtSignal()  # 메인 창 열기 요청 신호
 
     def __init__(self, fonts, word_list):
         super().__init__()
@@ -16,6 +16,9 @@ class SmallWindow(QMainWindow):
 
         self.is_dragging = False
         self.offset = None
+
+        # 예문 표시 여부 상태: 기본 True(표시)
+        self.is_example_shown = True
 
         # 타이머
         self.timer = QTimer(self)
@@ -34,8 +37,6 @@ class SmallWindow(QMainWindow):
         move_to_bottom_left(self)
         # move_to_bottom_right(self)  # 필요 시 교체
 
-        self.resize(330, 110)
-
         self.setStyleSheet("""
             QMainWindow {
                 background-color: white;
@@ -48,7 +49,7 @@ class SmallWindow(QMainWindow):
         layout.setContentsMargins(3, 3, 3, 3)
         layout.setSpacing(5)
 
-        # 홈 버튼 (큰 창으로 돌아가기)
+        # 홈 버튼 (메인 창으로 돌아가기)
         home_button = QPushButton(self)
         home_button.setIcon(QIcon("assets/go_home_back_btn.png"))
         home_button.setIconSize(QSize(20, 20))
@@ -57,8 +58,15 @@ class SmallWindow(QMainWindow):
         home_button.clicked.connect(self.request_open_main_window)
         layout.addWidget(home_button, 0, 0, Qt.AlignLeft | Qt.AlignVCenter)
 
-        # 빈 칸
-        layout.addWidget(QWidget(), 0, 1)
+        # 각 기능 설정
+        # 예문 토글 버튼
+        self.toggle_example_button = QPushButton(self)
+        self.toggle_example_button.setStyleSheet("border: none;")
+        self.toggle_example_button.setFixedSize(20, 20)
+        self.toggle_example_button.setIconSize(QSize(20, 20))
+        self.toggle_example_button.setIcon(QIcon("assets/hide_example.png"))
+        self.toggle_example_button.clicked.connect(self.toggle_example)
+        layout.addWidget(self.toggle_example_button, 0, 1, Qt.AlignCenter | Qt.AlignVCenter)
 
         # 단어 정보(현재 / 총 개수)
         self.word_info_label = QLabel(self)
@@ -132,12 +140,42 @@ class SmallWindow(QMainWindow):
         word_data = self.word_list[self.current_index]
         nanum_regular = self.fonts.get("NanumSquareR.ttf", "Arial")
 
+        # 예문을 표시할지 여부에 따라 텍스트 구성
+        if self.is_example_shown:
+            example_html = (
+                f"<pre style='margin: 0; font-family: {nanum_regular}; font-size: 12px;'>{word_data['example']}</pre>"
+            )
+        else:
+            example_html = ""  # 예문 숨기기
+
         self.word_display.setText(
             f"<h3 style='margin: 0; font-family: {nanum_regular}; font-size: 20px;'>{word_data['word']}</h3>"
             f"<p style='margin: 0 0 3px 0; font-family: {nanum_regular}; font-size: 16px;'>{word_data['meaning']}</p>"
-            f"<pre style='margin: 0; font-family: {nanum_regular}; font-size: 12px;'>{word_data['example']}</pre>"
+            + example_html
         )
         self.word_info_label.setText(f"{self.current_index + 1}/{len(self.word_list)}")
+
+    # 예문 표시 토글 함수
+    def toggle_example(self):
+        """예문 표시 여부를 토글"""
+        self.is_example_shown = not self.is_example_shown
+
+        if self.is_example_shown:
+            # 예문이 보이는 상태 -> 버튼 아이콘: hide_example
+            self.toggle_example_button.setIcon(QIcon("assets/hide_example.png"))
+            self.resize(330, 110)  # 예문 표시 시 원래 크기
+
+        else:
+            # 예문이 숨겨진 상태 -> 버튼 아이콘: show_example
+            self.toggle_example_button.setIcon(QIcon("assets/show_example.png"))
+            self.resize(100, 100)  # 예문 숨길 시 창 크기 줄이기
+
+        # 강제 업데이트
+        self.updateGeometry()  # 레이아웃 강제 갱신
+        self.adjustSize()      # 창 크기를 레이아웃에 맞게 조정
+        self.repaint()         # 창을 강제로 다시 그리기
+        
+        self.update_word_display()
 
     def request_open_main_window(self):
         """큰 창 열기 요청 신호 발생"""
