@@ -61,14 +61,14 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(10)
 
         # 사이드바
         sidebar_frame = QFrame()
         sidebar_frame.setObjectName("Sidebar")
         sidebar_layout = QVBoxLayout(sidebar_frame)
-        sidebar_layout.setContentsMargins(10, 10, 10, 10)
+        sidebar_layout.setContentsMargins(3, 60, 3, 10)
         sidebar_layout.setSpacing(10)
 
         # 사이드바 버튼 (학습, 단어장, 학습 이력)

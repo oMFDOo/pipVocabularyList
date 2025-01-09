@@ -46,8 +46,8 @@ class StudyPage(QWidget):
         """)
 
         main_layout = QVBoxLayout(self)
-        main_layout.setSpacing(15)
-        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(3)
+        main_layout.setContentsMargins(3, 3, 3, 3)
 
         # (1) 상단 타이틀, 설명
         title_label = QLabel("학습하기")
@@ -58,7 +58,7 @@ class StudyPage(QWidget):
 
         # (2) 가운데 영역: 왼쪽(주제별 추천 단어), 오른쪽(세부 정보)
         middle_layout = QHBoxLayout()
-        middle_layout.setSpacing(10)
+        middle_layout.setSpacing(3)
 
         # 2-1) 왼쪽 리스트
         left_box_layout = QVBoxLayout()
@@ -76,7 +76,7 @@ class StudyPage(QWidget):
 
         # 2-2) 오른쪽 세부 정보
         right_box_layout = QVBoxLayout()
-        right_box_layout.setSpacing(10)
+        right_box_layout.setSpacing(3)
 
         # (2-2-1) 날짜 입력 + 저장 버튼
         date_layout = QHBoxLayout()
