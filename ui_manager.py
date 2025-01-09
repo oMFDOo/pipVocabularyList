@@ -4,6 +4,7 @@ from PyQt5.QtCore import QSize, Qt
 from custom_widgets import ColorBlock
 from effects import apply_shadow_effect
 from window_position import center_window, move_to_bottom_right, move_to_bottom_left
+from PyQt5.QtCore import QTimer
 
 
 class MainWindow(QMainWindow):
@@ -17,6 +18,11 @@ class MainWindow(QMainWindow):
 
         self.is_dragging = False
         self.offset = None
+        
+        # 타이머 추가
+        self.timer = QTimer(self)  # 타이머 생성
+        self.timer.timeout.connect(self.auto_next_word)  # 타이머에 함수 연결
+        self.timer.start(5000)  # 5000ms (5초)마다 timeout 발생
 
         # 타이틀바 제거 및 그림자 효과 추가
         self.setWindowFlags(Qt.FramelessWindowHint)
@@ -27,6 +33,14 @@ class MainWindow(QMainWindow):
         self.is_initial = True
         self.setup_initial_screen()
         center_window(self)
+    
+    def auto_next_word(self):
+        """5초마다 다음 단어로 넘어감"""
+        if self.current_index < len(self.words) - 1:
+            self.current_index += 1  # 다음 단어로 이동
+        else:
+            self.current_index = 0  # 마지막 단어 이후 처음으로 돌아감
+        self.update_word_display()
 
     def setup_initial_screen(self):
         """초기 화면 구성"""
@@ -156,11 +170,13 @@ class MainWindow(QMainWindow):
         self.is_initial = False
         move_to_bottom_right(self)
         self.setup_bottom_right_screen()
+        self.timer.start(5000)
         
     def switch_to_bottom_left(self):
         self.is_initial = False
         move_to_bottom_left(self)
         self.setup_bottom_right_screen()
+        self.timer.start(5000)
 
     def switch_to_initial(self):
         self.is_initial = True
@@ -169,6 +185,7 @@ class MainWindow(QMainWindow):
     
         center_window(self)
         self.setup_initial_screen()
+        self.timer.stop()
     
     # 마우스 설정
     def mousePressEvent(self, event):
@@ -190,12 +207,20 @@ class MainWindow(QMainWindow):
         if self.current_index > 0:
             self.current_index -= 1
             self.update_word_display()
+            
+        # 타이머를 다시 시작
+        self.timer.start(5000)
 
     def show_next_word(self):
         """다음 단어 보기"""
         if self.current_index < len(self.words) - 1:
             self.current_index += 1
-            self.update_word_display()
+        else:
+            self.current_index = 0  # 마지막 단어 이후 처음으로 돌아감
+        self.update_word_display()
+
+        # 타이머를 다시 시작
+        self.timer.start(5000)
 
     def update_word_display(self):
         """현재 단어 및 정보 표시"""
