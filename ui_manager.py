@@ -111,8 +111,8 @@ class MainWindow(QMainWindow):
         
         # 3번 칸: 현재 단어 번호와 총 단어 개수
         self.word_info_label = QLabel(self)
-        self.word_info_label.setAlignment(Qt.AlignRight)
-        self.word_info_label.setStyleSheet("font-family: NanumSquareL; font-size: 16px; padding-right: 3px;")
+        self.word_info_label.setAlignment(Qt.AlignRight | Qt.AlignBottom)
+        self.word_info_label.setStyleSheet("font-family: NanumSquareL; font-size: 13px; padding-right: 3px;")
         layout.addWidget(self.word_info_label, 0, 2, Qt.AlignRight)
 
 
