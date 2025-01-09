@@ -51,7 +51,11 @@ class MainWindow(QMainWindow):
     def setup_bottom_right_screen(self):
         """작은 창 구성 (단어장 기능 포함)"""
         self.clear_screen()
+        
 
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint) # 화면 최상단 유지
+        self.show()  # 변경된 속성 적용을 위해 호출
+        
         # 창 스타일 유지
         self.setStyleSheet("""
             QMainWindow {
@@ -160,6 +164,9 @@ class MainWindow(QMainWindow):
 
     def switch_to_initial(self):
         self.is_initial = True
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.show() 
+    
         center_window(self)
         self.setup_initial_screen()
     
