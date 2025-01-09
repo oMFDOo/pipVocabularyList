@@ -50,8 +50,13 @@ class StudyPage(QWidget):
         main_layout.setContentsMargins(3, 3, 3, 3)
 
         # (1) 상단 타이틀, 설명
+        esamanru_Bold = self.fonts.get("esamanru_Bold.ttf", "Arial")
+        print(self.fonts)
+        print(self.fonts.get("esamanru_Bold.ttf", "Arial"))
+        print(f"font-size: 20px; font-family: {esamanru_Bold}; color: #458EE9")
+
         title_label = QLabel("학습하기")
-        title_label.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title_label.setStyleSheet(f"font-size: 20px; font-family: {esamanru_Bold}; color: #458EE9")
         desc_label = QLabel("외우고 싶은 단어장과 학습 방식을 선택하세요.")
         main_layout.addWidget(title_label)
         main_layout.addWidget(desc_label)

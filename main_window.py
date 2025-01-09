@@ -13,7 +13,8 @@ from word_page import WordPage
 from history_page import HistoryPage
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, fonts):
+        self.fonts = fonts
         super().__init__()
 
         self.is_dragging = False
@@ -86,7 +87,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.stacked_widget, 1)
 
         # 페이지들 생성 & stacked_widget에 추가
-        self.study_page = StudyPage()
+        self.study_page = StudyPage(self.fonts)
         self.word_page = WordPage()
         self.history_page = HistoryPage()
 

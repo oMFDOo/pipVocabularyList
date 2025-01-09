@@ -149,7 +149,7 @@ class SmallWindow(QMainWindow):
             example_html = ""  # 예문 숨기기
 
         self.word_display.setText(
-            f"<h3 style='margin: 0; font-family: {nanum_regular}; font-size: 20px;'>{word_data['word']}</h3>"
+            f"<h2 style='margin: 0; font-family: \"Arial\"; font-size: 24px;'>{word_data['word']}</h2>"
             f"<p style='margin: 0 0 3px 0; font-family: {nanum_regular}; font-size: 16px;'>{word_data['meaning']}</p>"
             + example_html
         )

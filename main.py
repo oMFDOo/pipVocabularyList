@@ -16,7 +16,7 @@ def main():
     fonts = load_fonts()
 
     # 메인 윈도우와 작은 창 생성
-    main_window = MainWindow()  # MainWindow 생성
+    main_window = MainWindow(fonts)  # MainWindow 생성
     small_window = SmallWindow(fonts, main_window.word_list)  # word_list 전달
 
     # 신호 연결: 메인 윈도우에서 작은 창 열기 요청
