@@ -13,6 +13,7 @@ def main():
 
     # 폰트 로드
     fonts = load_fonts()
+    print(fonts)
 
     # 메인 윈도우와 작은 창 생성
     main_window = MainWindow(fonts)  # MainWindow 생성
