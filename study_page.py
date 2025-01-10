@@ -45,14 +45,11 @@ class StudyPage(QWidget):
     def setup_ui(self):
         """'학습' 페이지 레이아웃 구성"""
         self.setStyleSheet("""
-            QWidget {
-                background-color: white;
-            }
             QPushButton {
                 color: #fff;
                 background-color: #45b1e9;
-                border: 1px solid #00000000;
-                border-radius: 5px;
+                border: 1px solid #ffffffff;
+                border-radius: 6px;
                 padding: 10px;
                 width: 100%;
             }
@@ -65,12 +62,16 @@ class StudyPage(QWidget):
             QLineEdit {
                 height: 30px;
                 border: 2px solid #45b1e9;
-                border-radius: 5px;
+                border-radius: 6px;
                 padding: 5px;
             }
             QTableWidget {
                 border: 2px solid #45b1e9;
-                border-radius: 5px;
+                border-radius: 6px;
+            }
+            QListWidget {
+                border: 2px solid #45b1e9;
+                border-radius: 6px;
             }
         """)
 
@@ -102,11 +103,15 @@ class StudyPage(QWidget):
         left_label = QLabel("💙 내 단어")
         left_label.setFont(title_label_font)
         self.list_widget = QListWidget()
+        self.list_widget.setStyleSheet("font-family: 'Pretendard';")
         self.list_widget.setSelectionMode(QListWidget.SingleSelection)
         self.list_widget.itemClicked.connect(self.display_wordbook)
 
         # '추가' 버튼 연결
         self.add_button = QPushButton("+")
+        add_button_font = QFont("esamanru Bold")
+        self.add_button.setStyleSheet("font-size: 20px;")
+        self.add_button.setFont(add_button_font)
         self.add_button.setFixedWidth(35)
         self.add_button.clicked.connect(self.add_wordbook)
 

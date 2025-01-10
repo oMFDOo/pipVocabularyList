@@ -1,6 +1,5 @@
-# small_window.py
-from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QPushButton, QLabel
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QPushButton, QLabel, QSizePolicy
+from PyQt5.QtGui import QIcon, QFontMetrics
 from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
 
 from window_position import move_to_bottom_right, move_to_bottom_left
@@ -94,8 +93,9 @@ class SmallWindow(QMainWindow):
         # 예문 표시 라벨
         self.example_display = QLabel(self)
         self.example_display.setAlignment(Qt.AlignTop | Qt.AlignCenter)
-        self.example_display.setWordWrap(True)
+        self.example_display.setWordWrap(False)  # 단어 줄 바꿈 비활성화
         self.example_display.setStyleSheet("color: gray; font-size: 12px;")
+        self.example_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         layout.addWidget(self.example_display, 2, 1, Qt.AlignCenter)
 
         # 다음 단어 버튼
@@ -173,7 +173,7 @@ class SmallWindow(QMainWindow):
         self.update_word_display()
 
     def update_word_display(self):
-        """현재 단어 및 정보 표시"""
+        """현재 단어 및 정보 표시 및 창 크기 조정"""
         if not self.word_list:
             self.word_display.setText("단어장이 설정되지 않았습니다.")
             self.example_display.setText("")
@@ -214,6 +214,30 @@ class SmallWindow(QMainWindow):
             self.example_display.setText("")
 
         self.word_info_label.setText(f"{self.current_index + 1}/{len(self.word_list)}")
+
+        # 창 크기 조정
+        self.adjust_window_size()
+
+    def adjust_window_size(self):
+        """예문 텍스트에 따라 창의 너비를 조정"""
+        # 기본 및 최대 너비 설정
+        base_width = 330
+        max_width = 370  # 최대 너비를 500으로 설정 (필요에 따라 조정)
+
+        # 폰트 설정 (예문에 사용된 폰트)
+        example_font = self.example_display.font()
+        metrics = QFontMetrics(example_font)
+
+        example_text = self.example_display.text().replace('\n', ' ')
+        text_width = metrics.horizontalAdvance(example_text) + 20  # 여백 추가
+
+        # 필요한 너비 계산: base_width보다 크고 max_width를 넘지 않도록
+        required_width = max(base_width, text_width)
+        required_width = min(required_width, max_width)
+
+        # 현재 창의 너비와 비교하여 변경 필요 시만 조정
+        if self.width() != required_width:
+            self.setFixedWidth(required_width)
 
     def request_open_main_window(self):
         """큰 창 열기 요청 신호 발생"""
