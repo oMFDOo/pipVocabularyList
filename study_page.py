@@ -60,10 +60,12 @@ class StudyPage(QWidget):
                 font-size: 15px;
             }
             QLineEdit {
-                height: 30px;
+                height: 20px;
                 border: 2px solid #45b1e9;
                 border-radius: 6px;
                 padding: 5px;
+                font-family: 'Pretendard'; 
+                font-size: 14px;
             }
             QTableWidget {
                 border: 2px solid #45b1e9;
@@ -100,19 +102,22 @@ class StudyPage(QWidget):
         left_box_layout = QVBoxLayout()
         
         self.open_subject_button = QPushButton("주제별 단어 추천받기")
+        self.open_subject_button.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         left_label = QLabel("💙 내 단어")
-        left_label.setFont(title_label_font)
+        
+        # left_label.setFont(title_label_font)
+        left_label.setStyleSheet("font-family: 'esamanru Bold'; font-size: 23px;")
         self.list_widget = QListWidget()
-        self.list_widget.setStyleSheet("font-family: 'Pretendard';")
+        self.list_widget.setStyleSheet("font-family: 'Pretendard'; font-size: 14px;")
         self.list_widget.setSelectionMode(QListWidget.SingleSelection)
         self.list_widget.itemClicked.connect(self.display_wordbook)
 
         # '추가' 버튼 연결
-        self.add_button = QPushButton("+")
-        add_button_font = QFont("esamanru Bold")
-        self.add_button.setStyleSheet("font-size: 20px;")
+        self.add_button = QPushButton("단어 불러오기")
+        add_button_font = QFont("Pretendard")
+        self.add_button.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.add_button.setFont(add_button_font)
-        self.add_button.setFixedWidth(35)
+        self.add_button.setFixedWidth(300)
         self.add_button.clicked.connect(self.add_wordbook)
 
         left_box_layout.addWidget(left_label)
@@ -127,8 +132,9 @@ class StudyPage(QWidget):
         # (2-2-1) 날짜 입력 + 저장 버튼
         date_layout = QHBoxLayout()
         self.date_edit = QLineEdit()
-        self.date_edit.setPlaceholderText("2025.01.12")
+        self.date_edit.setPlaceholderText("학습할 단어장을 선택해주세요.")
         self.save_button = QPushButton("저장")
+        self.save_button.setStyleSheet("font-family: 'Pretendard'; font-size: 14px;")
         date_layout.addWidget(self.date_edit)
         date_layout.addWidget(self.save_button)
 
@@ -136,14 +142,17 @@ class StudyPage(QWidget):
         self.word_table = QTableWidget()
         self.word_table.setColumnCount(2)
         self.word_table.setHorizontalHeaderLabels(["영단어", "뜻"])
+        self.word_table.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.word_table.setRowCount(0)  # 초기에는 빈 테이블
 
         # (2-2-3) 표출 순서 라디오버튼
         radio_layout = QHBoxLayout()
-        radio_layout.setSpacing(20)
-        radio_label = QLabel("표출 순서:")
+        radio_label = QLabel("표출 순서 ")
+        radio_label.setStyleSheet("font-family: 'esamanru Light'; font-size: 16px; color: #45b1e9;")
         self.eng_first_radio = QRadioButton("영단어 - 뜻")
         self.meaning_first_radio = QRadioButton("뜻 - 영단어")
+        self.eng_first_radio.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
+        self.meaning_first_radio.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.eng_first_radio.setChecked(True)
 
         self.radio_group = QButtonGroup()
@@ -158,15 +167,24 @@ class StudyPage(QWidget):
 
         # (2-2-4) 음성 언어 콤보박스
         voice_layout = QHBoxLayout()
-        voice_label = QLabel("음성 언어:")
+        voice_label = QLabel("음성 언어 ")
+        voice_label.setStyleSheet("font-family: 'esamanru Light'; font-size: 16px; color: #45b1e9;")
         self.voice_combo = QComboBox()
         self.voice_combo.addItems(["미국-여성", "영국-남성", "한국-여성"])
+        self.voice_combo.setStyleSheet("""
+            font-family: 'Pretendard';
+            font-size: 14px;
+            background-color: #fff;
+            border: solid 1px #45b1e9;
+            padding: 5px 15px 5px 15px;
+        """)
         voice_layout.addWidget(voice_label)
         voice_layout.addWidget(self.voice_combo)
         voice_layout.addStretch()
 
         # (2-2-5) 학습 시작 버튼
         self.start_button = QPushButton("학습 시작")
+        self.start_button.setStyleSheet("font-family: 'Pretendard ExtraBold'; font-size: 20px;")
         self.start_button.clicked.connect(self.request_open_small_window)
 
         # 오른쪽 레이아웃에 순서대로 배치
