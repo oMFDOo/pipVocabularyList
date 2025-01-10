@@ -1,0 +1,64 @@
+Leverage
+활용하다, 지렛대 효과
+Scalability
+확장성
+Synergy
+시너지, 협력 효과
+Iteration
+반복, 반복적인 개선
+Stakeholder
+이해관계자
+Alignment
+조정, 정렬
+Milestone
+이정표, 중요한 단계
+Deliverable
+산출물, 결과물
+Bandwidth
+작업 처리 능력, 용량
+KPI
+핵심 성과 지표 (Key Performance Indicator)
+Disruptor
+파괴적 혁신가, 변화를 주도하는 사람/기업
+Ecosystem
+생태계, 비즈니스 환경
+Agility
+민첩성
+Pivot
+방향 전환, 피봇
+Repository
+저장소 (특히 코드 저장소)
+Refactor
+코드 리팩토링
+Compliance
+준수, 규정 이행
+Framework
+프레임워크, 틀
+Integration
+통합, 융합
+Prototype
+프로토타입, 시제품
+Roadmap
+로드맵, 계획표
+Deployment
+배포
+Scalability
+확장 가능성
+Benchmarking
+벤치마킹
+Optimization
+최적화
+Legacy System
+구식 시스템
+Concurrency
+동시성
+End-to-End
+끝에서 끝까지, 전체 과정
+Pipeline
+파이프라인, 작업 처리 흐름
+Onboarding
+온보딩, 신규 사용자/직원의 적응 과정
+DevOps
+개발과 운영의 융합
+Granularity
+세분화 수준

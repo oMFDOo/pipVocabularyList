@@ -1,10 +1,34 @@
+# study_page.py
+
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QListWidget, QLineEdit, QTableWidget, QTableWidgetItem,
-    QRadioButton, QButtonGroup, QComboBox
+    QListWidget, QListWidgetItem, QLineEdit, QTableWidget, QTableWidgetItem,
+    QRadioButton, QButtonGroup, QComboBox, QFileDialog, QMessageBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
+import os
+
+# wordbook_manager 모듈 임포트
+from wordbook_manager import load_wordbooks, parse_wordbook
+
+class WordbookListItem(QWidget):
+    def __init__(self, title, word_count, parent=None):
+        super().__init__(parent)
+        
+        self.title_label = QLabel(title)
+        self.count_label = QLabel(f"({word_count})")
+        
+        # 스타일 설정 (필요에 따라 수정 가능)
+        self.title_label.setStyleSheet("font-size: 12px;")
+        self.count_label.setStyleSheet("font-size: 8px; color: gray;")
+        
+        layout = QHBoxLayout()
+        layout.addWidget(self.title_label)
+        layout.addStretch()
+        layout.addWidget(self.count_label)
+        
+        self.setLayout(layout)
 
 class StudyPage(QWidget):
     # 작은 창 열기 요청 신호 -> 만약 필요하다면
@@ -14,8 +38,11 @@ class StudyPage(QWidget):
         super().__init__(parent)
         self.fonts = fonts
         self.word_list = word_list
+        self.wordbooks = {}    # 단어장 데이터를 저장할 딕셔너리
+        self.word_counts = {}  # 단어장 단어 수를 저장할 딕셔너리
 
         self.setup_ui()
+        self.load_initial_wordbooks()
 
     def setup_ui(self):
         """'학습' 페이지 레이아웃 구성"""
@@ -74,15 +101,16 @@ class StudyPage(QWidget):
         left_box_layout = QVBoxLayout()
         
         self.open_subject_button = QPushButton("주제별 단어 추천받기")
-        # date_layout.addWidget(self.open_subject_button)
         left_label = QLabel("💙 내 단어")
         left_label.setFont(title_label_font)
         self.list_widget = QListWidget()
-        # 단어장 제목 리스트 출력
-        for date_str in ["한 번 보고 바로 잊어버림ㅎㅎ", "이건 외워야지!!", "수능 실전 VOCA 37-54p", "시험 전날 벼락치기 단어 모음", "왜 이걸 몰랐지?", "김밍키 추천 인생 단어 리스트", "외워봤자 못쓰는 지옥의 단어장", "평소엔 안 외우던 생소한 ", "영화 자막에서 건져 올린 ", "내 영어 약점 분석 결과 정리", "선생님이 강조한 필수 ", "어디서 주워들은 고급진 ", "시험 망치고 나서야 정리한 ", "한동안 단어장만 들여다본 결과물", "지금 외워도 늦지 않을 "]:
-            self.list_widget.addItem(date_str)
+        self.list_widget.setSelectionMode(QListWidget.SingleSelection)
+        self.list_widget.itemClicked.connect(self.display_wordbook)
+
+        # '추가' 버튼 연결
         self.add_button = QPushButton("+")
         self.add_button.setFixedWidth(35)
+        self.add_button.clicked.connect(self.add_wordbook)
 
         left_box_layout.addWidget(left_label)
         left_box_layout.addWidget(self.list_widget)
@@ -105,17 +133,7 @@ class StudyPage(QWidget):
         self.word_table = QTableWidget()
         self.word_table.setColumnCount(2)
         self.word_table.setHorizontalHeaderLabels(["영단어", "뜻"])
-        self.word_table.setRowCount(5)  # 예시
-        example_data = [
-            ("apple", "사과 (n)"),
-            ("car", "자동차"),
-            ("watch", "보다"),
-            ("can", "캔"),
-            ("do", "도 하는데"),
-        ]
-        for row, (eng, kor) in enumerate(example_data):
-            self.word_table.setItem(row, 0, QTableWidgetItem(eng))
-            self.word_table.setItem(row, 1, QTableWidgetItem(kor))
+        self.word_table.setRowCount(0)  # 초기에는 빈 테이블
 
         # (2-2-3) 표출 순서 라디오버튼
         radio_layout = QHBoxLayout()
@@ -128,6 +146,7 @@ class StudyPage(QWidget):
         self.radio_group = QButtonGroup()
         self.radio_group.addButton(self.eng_first_radio)
         self.radio_group.addButton(self.meaning_first_radio)
+        self.radio_group.buttonClicked.connect(self.update_word_table_order)
 
         radio_layout.addWidget(radio_label)
         radio_layout.addWidget(self.eng_first_radio)
@@ -159,6 +178,81 @@ class StudyPage(QWidget):
         middle_layout.addLayout(right_box_layout, 5)
 
         main_layout.addLayout(middle_layout)
+
+    def load_initial_wordbooks(self):
+        """초기 단어장 로드 (words 디렉토리에서)"""
+        words_directory = os.path.join(os.path.dirname(__file__), 'words')
+        loaded_wordbooks, loaded_word_counts = load_wordbooks(words_directory)
+        self.wordbooks = loaded_wordbooks
+        self.word_counts = loaded_word_counts
+
+        for title, count in self.word_counts.items():
+            item_widget = WordbookListItem(title, count)
+            list_item = QListWidgetItem(self.list_widget)
+            list_item.setSizeHint(item_widget.sizeHint())
+            self.list_widget.addItem(list_item)
+            self.list_widget.setItemWidget(list_item, item_widget)
+
+    def add_wordbook(self):
+        """단어장 파일을 추가하는 기능 (파일 다이얼로그 사용)"""
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+        file_paths, _ = QFileDialog.getOpenFileNames(
+            self,
+            "단어장 파일 추가",
+            "",
+            "Text Files (*.txt);;All Files (*)",
+            options=options
+        )
+        if file_paths:
+            for file_path in file_paths:
+                self.load_and_add_wordbook(file_path)
+
+    def load_and_add_wordbook(self, file_path):
+        """단어장 파일을 로드하고 리스트에 추가"""
+        words, word_count = parse_wordbook(file_path)
+        if word_count == 0:
+            QMessageBox.warning(self, "오류", f"'{os.path.basename(file_path)}' 파일을 로드할 수 없습니다.")
+            return
+        
+        title = os.path.splitext(os.path.basename(file_path))[0]
+        if title in self.wordbooks:
+            QMessageBox.information(self, "정보", f"'{title}' 단어장은 이미 추가되었습니다.")
+            return
+
+        self.wordbooks[title] = words
+        self.word_counts[title] = word_count
+
+        item_widget = WordbookListItem(title, word_count)
+        list_item = QListWidgetItem(self.list_widget)
+        list_item.setSizeHint(item_widget.sizeHint())
+        self.list_widget.addItem(list_item)
+        self.list_widget.setItemWidget(list_item, item_widget)
+
+    def display_wordbook(self, item):
+        """리스트에서 단어장을 선택했을 때 단어 테이블에 표시"""
+        row = self.list_widget.row(item)
+        list_item_widget = self.list_widget.itemWidget(item)
+        title = list_item_widget.title_label.text()
+        words = self.wordbooks.get(title, [])
+        
+        self.word_table.setRowCount(len(words))
+        for row_idx, (eng, kor) in enumerate(words):
+            if self.eng_first_radio.isChecked():
+                self.word_table.setItem(row_idx, 0, QTableWidgetItem(eng))
+                self.word_table.setItem(row_idx, 1, QTableWidgetItem(kor))
+            else:
+                self.word_table.setItem(row_idx, 0, QTableWidgetItem(kor))
+                self.word_table.setItem(row_idx, 1, QTableWidgetItem(eng))
+        
+        self.word_table.resizeColumnsToContents()
+
+    def update_word_table_order(self):
+        """표출 순서 변경 시 단어 테이블 업데이트"""
+        selected_items = self.list_widget.selectedItems()
+        if not selected_items:
+            return
+        self.display_wordbook(selected_items[0])
 
     def request_open_small_window(self):
         """작은 창 열기 요청 신호 발생"""
