@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
     QRadioButton, QButtonGroup, QComboBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QFont
 
 class StudyPage(QWidget):
     # 작은 창 열기 요청 신호 -> 만약 필요하다면
@@ -23,64 +24,69 @@ class StudyPage(QWidget):
                 background-color: white;
             }
             QPushButton {
-                background-color: #ffffff;
-                border: 1px solid #ccc;
-                padding: 8px;
+                color: #fff;
+                background-color: #45b1e9;
+                border: 1px solid #00000000;
+                border-radius: 5px;
+                padding: 10px;
+                width: 100%;
             }
             QPushButton:hover {
-                background-color: #f0f0f0;
+                background-color:#229bd8;
             }
             QLabel {
                 font-size: 15px;
             }
             QLineEdit {
                 height: 30px;
-                border: 1px solid #ccc;
+                border: 2px solid #45b1e9;
                 border-radius: 5px;
                 padding: 5px;
             }
             QTableWidget {
-                border: 1px solid #ccc;
+                border: 2px solid #45b1e9;
                 border-radius: 5px;
             }
         """)
 
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(3)
-        main_layout.setContentsMargins(3, 3, 3, 3)
+        main_layout.setContentsMargins(15, 5, 30, 30)
 
         # (1) 상단 타이틀, 설명
-        esamanru_Bold = self.fonts.get("esamanru_Bold.ttf", "Arial")
-        print(self.fonts)
-        print(self.fonts.get("esamanru_Bold.ttf", "Arial"))
-        print(f"font-size: 20px; font-family: {esamanru_Bold}; color: #458EE9")
-
+        main_layout.addSpacing(20)
         title_label = QLabel("학습하기")
-        title_label.setStyleSheet(f"font-size: 20px; font-family: {esamanru_Bold}; color: #458EE9")
+        title_label_font = QFont("esamanru Bold")
+        title_label.setFont(title_label_font)
+        title_label.setStyleSheet("color: #458EE9; font-size: 30px;")
+        desc_label_font = QFont("Pretendard Light")
         desc_label = QLabel("외우고 싶은 단어장과 학습 방식을 선택하세요.")
+        desc_label.setFont(desc_label_font)
+        desc_label.setStyleSheet("margin-bottom: 10px;")
         main_layout.addWidget(title_label)
         main_layout.addWidget(desc_label)
 
-        # (2) 가운데 영역: 왼쪽(주제별 추천 단어), 오른쪽(세부 정보)
+        # (2) 가운데 영역: 왼쪽(주제별 단어 추천받기), 오른쪽(세부 정보)
         middle_layout = QHBoxLayout()
-        middle_layout.setSpacing(3)
+        middle_layout.setSpacing(5)
 
         # 2-1) 왼쪽 리스트
         left_box_layout = QVBoxLayout()
         
-        self.open_subject_button = QPushButton("주제별 추천 단어")
+        self.open_subject_button = QPushButton("주제별 단어 추천받기")
         # date_layout.addWidget(self.open_subject_button)
-        # left_label = QLabel("주제별 추천 단어")
+        left_label = QLabel("💙 내 단어")
+        left_label.setFont(title_label_font)
         self.list_widget = QListWidget()
         # 단어장 제목 리스트 출력
-        for date_str in ["2025.01.12일자 단어!", "2024.12.28", "2024.10.36", "오늘은 열심히 공부!"]:
+        for date_str in ["한 번 보고 바로 잊어버림ㅎㅎ", "이건 외워야지!!", "수능 실전 VOCA 37-54p", "시험 전날 벼락치기 단어 모음", "왜 이걸 몰랐지?", "김밍키 추천 인생 단어 리스트", "외워봤자 못쓰는 지옥의 단어장", "평소엔 안 외우던 생소한 ", "영화 자막에서 건져 올린 ", "내 영어 약점 분석 결과 정리", "선생님이 강조한 필수 ", "어디서 주워들은 고급진 ", "시험 망치고 나서야 정리한 ", "한동안 단어장만 들여다본 결과물", "지금 외워도 늦지 않을 "]:
             self.list_widget.addItem(date_str)
         self.add_button = QPushButton("+")
-        self.add_button.setFixedWidth(40)
+        self.add_button.setFixedWidth(35)
 
-        # left_box_layout.addWidget(left_label)
-        left_box_layout.addWidget(self.open_subject_button)
+        left_box_layout.addWidget(left_label)
         left_box_layout.addWidget(self.list_widget)
+        left_box_layout.addWidget(self.open_subject_button)
         left_box_layout.addWidget(self.add_button, alignment=Qt.AlignRight)
 
         # 2-2) 오른쪽 세부 정보

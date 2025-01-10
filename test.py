@@ -1,54 +1,86 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLabel
+import sys
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout,
+    QLabel, QPushButton, QTableWidget, QTableWidgetItem, QLineEdit, QComboBox
+)
 
-class ColorBlock(QLabel):
-    def __init__(self, color, min_width, min_height):
+
+class VocabularyApp(QMainWindow):
+    def __init__(self):
         super().__init__()
-        self.setStyleSheet(f"background-color: {color};")
-        self.setMinimumSize(min_width, min_height)  # 최소 크기 설정
+        self.setWindowTitle("학습하기")
+        self.resize(1000, 700)
 
-app = QApplication([])
+        # 메인 위젯 및 레이아웃 설정
+        main_widget = QWidget(self)
+        main_layout = QGridLayout(main_widget)
+        self.setCentralWidget(main_widget)
 
-# 메인 창
-window = QWidget()
-window.setWindowTitle("2x3 Layout with Colors")
-layout = QGridLayout()
+        # ===== 사이드바 =====
+        sidebar = self.create_sidebar()
+        main_layout.addLayout(sidebar, 0, 0, 2, 1)  # 좌측 상단에 배치 (2행 차지)
 
-# 간격 제거
-layout.setContentsMargins(0, 0, 0, 0)  # 레이아웃의 여백 제거
-layout.setSpacing(0)  # 위젯 간 간격 제거
+        # ===== 상단 영역 =====
+        top_section = self.create_top_section()
+        main_layout.addLayout(top_section, 0, 1)  # 우측 상단에 배치
 
-# 2x3 레이아웃에 색깔 추가 (Hex 코드 사용)
-colors = [
-    "#FF5733",  # 빨강
-    "#33FF57",  # 초록
-    "#3357FF",  # 파랑
-    "#FFFF33",  # 노랑
-    "#FF33FF",  # 분홍
-    "#33FFFF",  # 청록
-]
+        # ===== 중앙 데이터 테이블 =====
+        table_section = self.create_table_section()
+        main_layout.addWidget(table_section, 1, 1)  # 우측 중앙에 배치
 
-# 행과 열에 따른 최소 크기 설정
-min_sizes = [
-    [(30, 30), (200, 30), (30, 30)],  # 첫 번째 행
-    [(30, 80), (200, 80), (30, 80)]  # 두 번째 행
-]
+    def create_sidebar(self):
+        """사이드바 구성"""
+        sidebar_layout = QVBoxLayout()
+        sidebar_layout.addWidget(QLabel("학습"))  # 상단 라벨
+        sidebar_layout.addWidget(QPushButton("2025.01.12"))
+        sidebar_layout.addWidget(QPushButton("2024.12.28"))
+        sidebar_layout.addWidget(QPushButton("2024.10.36"))
+        sidebar_layout.addWidget(QPushButton("오늘은 진짜"))
+        sidebar_layout.addWidget(QPushButton("+"))  # 하단 추가 버튼
+        return sidebar_layout
 
-# 색상 블록을 2x3으로 추가
-for row in range(2):  # 2 rows
-    for col in range(3):  # 3 columns
-        color = colors[row * 3 + col]
-        min_width, min_height = min_sizes[row][col]  # 최소 크기 가져오기
-        layout.addWidget(ColorBlock(color, min_width, min_height), row, col)
+    def create_top_section(self):
+        """상단 입력 및 버튼 영역"""
+        top_layout = QHBoxLayout()
+        input_box = QLineEdit()
+        input_box.setPlaceholderText("날짜를 입력하세요.")
+        save_button = QPushButton("저장")
+        top_layout.addWidget(input_box)
+        top_layout.addWidget(save_button)
+        return top_layout
 
-# 행(row)과 열(column)의 크기를 비율로 설정
-layout.setRowStretch(0, 1)  # 첫 번째 행의 비율 1
-layout.setRowStretch(1, 3)  # 두 번째 행의 비율 3
-layout.setColumnStretch(0, 1)  # 첫 번째 열의 비율 1
-layout.setColumnStretch(1, 3)  # 두 번째 열의 비율 3
-layout.setColumnStretch(2, 1)  # 세 번째 열의 비율 1
+    def create_table_section(self):
+        """중앙 데이터 테이블 및 우측 컨트롤"""
+        table_widget = QWidget()
+        table_layout = QGridLayout(table_widget)
 
-# 메인 레이아웃 설정
-window.setLayout(layout)
-window.resize(260, 110)  # 창 크기 조정
-window.show()
-app.exec_()
+        # 데이터 테이블
+        table = QTableWidget(10, 2)  # 10행 2열
+        table.setHorizontalHeaderLabels(["단어", "뜻"])
+        for i in range(10):
+            table.setItem(i, 0, QTableWidgetItem(f"word {i+1}"))
+            table.setItem(i, 1, QTableWidgetItem(f"meaning {i+1}"))
+
+        # 우측 컨트롤 버튼
+        controls_layout = QVBoxLayout()
+        controls_layout.addWidget(QLabel("표출 순서"))
+        controls_layout.addWidget(QPushButton("영단어 - 뜻"))
+        controls_layout.addWidget(QPushButton("뜻 - 영단어"))
+        controls_layout.addWidget(QLabel("음성 언어"))
+        dropdown = QComboBox()
+        dropdown.addItems(["미국-여성", "미국-남성"])
+        controls_layout.addWidget(dropdown)
+        controls_layout.addWidget(QPushButton("학습 시작"))
+
+        # 레이아웃 병합
+        table_layout.addWidget(table, 0, 0)
+        table_layout.addLayout(controls_layout, 0, 1)
+
+        return table_widget
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = VocabularyApp()
+    window.show()
+    sys.exit(app.exec_())
