@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("나의 신나는 단어장!") 
-        self.resize(1000, 800)
+        self.resize(1200, 700)
         self.setWindowFlags(Qt.FramelessWindowHint)  # 프레임 제거
         apply_shadow_effect(self)  # 그림자 효과
         center_window(self)       # 화면 중앙 배치

@@ -39,7 +39,7 @@ class StudyPage(QWidget):
         super().__init__(parent)
         self.fonts = fonts
         self.word_list = word_list
-        
+
         # 단어장 데이터를 저장할 딕셔너리
         self.wordbooks = {}         # {title: [ {word, meaning, example}, ... ], ... }
         # 단어장 단어 수를 저장할 딕셔너리
@@ -123,8 +123,8 @@ class StudyPage(QWidget):
         add_button_font = QFont("Pretendard")
         self.add_button.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.add_button.setFont(add_button_font)
-        self.add_button.setFixedWidth(300)
-        # 불러오기 버튼 클릭 시 동작
+        self.add_button.setFixedWidth(250)
+        self.add_button.setMaximumWidth(250)
         self.add_button.clicked.connect(self.add_wordbook)
 
         left_box_layout.addWidget(left_label)
@@ -141,7 +141,7 @@ class StudyPage(QWidget):
         # 여기서 '학습할 날짜' 대신 '선택된 단어장 제목'을 보여주도록 활용
         self.date_edit = QLineEdit()
         self.date_edit.setPlaceholderText("학습할 단어장을 선택해주세요.")
-        
+
         # 저장 버튼: 테이블 수정한 내용 파일로 저장
         self.save_button = QPushButton("저장")
         self.save_button.setStyleSheet("font-family: 'Pretendard'; font-size: 14px;")
@@ -207,8 +207,9 @@ class StudyPage(QWidget):
         right_box_layout.addWidget(self.start_button, alignment=Qt.AlignRight)
 
         # Middle layout 합치기
-        middle_layout.addLayout(left_box_layout, 2)
-        middle_layout.addLayout(right_box_layout, 5)
+        # 기존 스트레치 팩터를 2:5에서 1:4로 변경하여 왼쪽을 더 좁게
+        middle_layout.addLayout(left_box_layout, 1)
+        middle_layout.addLayout(right_box_layout, 4)
 
         main_layout.addLayout(middle_layout)
 

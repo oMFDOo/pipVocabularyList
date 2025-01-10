@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QApplication
 
 def center_window(window):
     """창을 화면 중앙에 배치"""
-    window.resize(1000, 800)  # 초기 크기
+    window.resize(1200, 700)  # 초기 크기
     screen = QApplication.primaryScreen()
     screen_geometry = screen.availableGeometry()
     screen_width = screen_geometry.width()
