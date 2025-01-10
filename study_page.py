@@ -136,7 +136,7 @@ class StudyPage(QWidget):
         right_box_layout = QVBoxLayout()
         right_box_layout.setSpacing(3)
 
-        # (2-2-1) 날짜 입력 + 저장 버튼
+        # (2-2-1) 제목(날짜) 입력 + 저장 버튼
         date_layout = QHBoxLayout()
         # 여기서 '학습할 날짜' 대신 '선택된 단어장 제목'을 보여주도록 활용
         self.date_edit = QLineEdit()
@@ -150,10 +150,10 @@ class StudyPage(QWidget):
         date_layout.addWidget(self.date_edit)
         date_layout.addWidget(self.save_button)
 
-        # (2-2-2) 테이블
+        # (2-2-2) 테이블 (영단어/뜻/예문 3개 컬럼)
         self.word_table = QTableWidget()
-        self.word_table.setColumnCount(2)
-        self.word_table.setHorizontalHeaderLabels(["영단어", "뜻"])
+        self.word_table.setColumnCount(3)
+        self.word_table.setHorizontalHeaderLabels(["영단어", "뜻", "예문"])
         self.word_table.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.word_table.setRowCount(0)  # 초기에는 빈 테이블
 
@@ -302,15 +302,27 @@ class StudyPage(QWidget):
 
         words = self.wordbooks.get(title, [])
         self.word_table.setRowCount(len(words))
+
         for row_idx, word_data in enumerate(words):
+            # (1) 영단어/뜻
             if self.eng_first_radio.isChecked():
                 eng = word_data.get('word', "")
                 kor = word_data.get('meaning', "")
             else:
                 eng = word_data.get('meaning', "")
                 kor = word_data.get('word', "")
+
             self.word_table.setItem(row_idx, 0, QTableWidgetItem(eng))
             self.word_table.setItem(row_idx, 1, QTableWidgetItem(kor))
+
+            # (2) 예문 처리:
+            # 기존 파일은 "-영문 +한글" 형태. UI에는 앞의 '-'를 빼고 "영문 +한글" 형태로 표시
+            example_raw = word_data.get('example', "").strip()  # 예: "-hello +안녕"
+            if example_raw.startswith('-'):
+                example_raw = example_raw[1:].strip()  # 맨 앞 '-' 제거
+
+            # 그대로 테이블에 쓰기
+            self.word_table.setItem(row_idx, 2, QTableWidgetItem(example_raw))
 
         self.word_table.resizeColumnsToContents()
 
@@ -337,22 +349,45 @@ class StudyPage(QWidget):
             QMessageBox.warning(self, "경고", "해당 단어장의 정보를 찾을 수 없습니다.")
             return
 
-        # 테이블에서 수정된 단어/뜻을 다시 읽어오기
+        # 기존 wordbook 데이터를 가져와서, 라디오버튼 설정(영단어/뜻 위치) 보정 등 처리
+        original_words = self.wordbooks[title]
         updated_words = []
+
         for row_idx in range(self.word_table.rowCount()):
-            # 혹시 공백 셀이 있을 수 있으므로 체크
             eng_item = self.word_table.item(row_idx, 0)
             kor_item = self.word_table.item(row_idx, 1)
-            if not eng_item or not kor_item:
+            ex_item = self.word_table.item(row_idx, 2)
+
+            if not eng_item or not kor_item or not ex_item:
                 continue
 
-            eng = eng_item.text().strip()
-            kor = kor_item.text().strip()
+            eng_text = eng_item.text().strip()
+            kor_text = kor_item.text().strip()
+            ex_text = ex_item.text().strip()
 
-            # 기존 example(예문)은 유지
-            example = self.wordbooks[title][row_idx].get('example', '')
-            # 만약 테이블에 example 컬럼도 추가했다면 직접 읽어올 수 있음
-            updated_words.append({'word': eng, 'meaning': kor, 'example': example})
+            # 원본에서 실제 'word'가 무엇이었는지(영단어 vs 뜻) 확인
+            original_data = original_words[row_idx]
+
+            # 라디오버튼에 따라, 실제 word/meaning 위치를 다시 맞춰준다
+            if self.eng_first_radio.isChecked():
+                word_str = eng_text
+                meaning_str = kor_text
+            else:
+                word_str = kor_text
+                meaning_str = eng_text
+
+            # 예문이 비어있지 않다면 맨 앞에 '-' 붙여서 저장
+            # 사용자가 "영문 +한글" 형태를 지키는지 여부는 별도 체크 없이 그대로 저장
+            if ex_text:
+                ex_final = "-" + ex_text  # 예: "-hello +안녕"
+            else:
+                ex_final = ""             # 예문 없는 경우
+
+            updated_words.append({
+                'word': word_str,
+                'meaning': meaning_str,
+                'example': ex_final
+            })
 
         # 파일 경로
         file_path = self.wordbook_paths[title]
@@ -385,4 +420,3 @@ class StudyPage(QWidget):
             QMessageBox.warning(self, "경고", "선택된 단어장이 비어 있습니다.")
             return
         self.open_small_window_signal.emit(word_list)
-
