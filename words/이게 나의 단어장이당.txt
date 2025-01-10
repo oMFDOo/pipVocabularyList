@@ -1,64 +1,93 @@
-Leverage
-활용하다, 지렛대 효과
-Scalability
-확장성
-Synergy
-시너지, 협력 효과
-Iteration
-반복, 반복적인 개선
-Stakeholder
-이해관계자
-Alignment
-조정, 정렬
-Milestone
-이정표, 중요한 단계
-Deliverable
-산출물, 결과물
-Bandwidth
-작업 처리 능력, 용량
-KPI
-핵심 성과 지표 (Key Performance Indicator)
-Disruptor
-파괴적 혁신가, 변화를 주도하는 사람/기업
-Ecosystem
-생태계, 비즈니스 환경
-Agility
-민첩성
-Pivot
-방향 전환, 피봇
-Repository
-저장소 (특히 코드 저장소)
-Refactor
-코드 리팩토링
-Compliance
-준수, 규정 이행
-Framework
-프레임워크, 틀
-Integration
-통합, 융합
-Prototype
-프로토타입, 시제품
-Roadmap
-로드맵, 계획표
-Deployment
-배포
-Scalability
-확장 가능성
-Benchmarking
-벤치마킹
-Optimization
-최적화
-Legacy System
-구식 시스템
-Concurrency
-동시성
-End-to-End
-끝에서 끝까지, 전체 과정
-Pipeline
-파이프라인, 작업 처리 흐름
-Onboarding
-온보딩, 신규 사용자/직원의 적응 과정
-DevOps
-개발과 운영의 융합
-Granularity
-세분화 수준
+ameliorate  
+개선하다, 향상시키다  
+-The manager worked to ameliorate the company+매니저는 회사를 개선하기 위해 노력했다  
+meticulous  
+꼼꼼한, 세심한  
+-She is meticulous about her work+그녀는 자신의 일에 꼼꼼하다  
+ubiquitous  
+어디에나 있는, 흔한  
+-Smartphones are ubiquitous today+스마트폰은 오늘날 어디에나 있다  
+exacerbate  
+악화시키다  
+-The rain exacerbated the flood+비는 홍수를 악화시켰다  
+benevolent  
+자비로운, 호의적인  
+-The teacher is benevolent to students+그 선생님은 학생들에게 자비롭다  
+ostentatious  
+과시하는, 화려한  
+-He drives an ostentatious car+그는 화려한 차를 운전한다  
+ephemeral  
+일시적인, 덧없는  
+-The beauty of sunsets is ephemeral+일몰의 아름다움은 일시적이다  
+convoluted  
+복잡한, 난해한  
+-The explanation was convoluted+그 설명은 복잡했다  
+magnanimous  
+관대한, 도량이 큰  
+-He was magnanimous to forgive+그는 관대하게 용서했다  
+ambivalent  
+상반된 감정을 가진  
+-She felt ambivalent about moving+그녀는 이사에 대해 상반된 감정을 느꼈다  
+surreptitious  
+은밀한, 비밀의  
+-They held a surreptitious meeting+그들은 은밀히 모임을 가졌다  
+juxtapose  
+나란히 놓다, 병치하다  
+-The artist juxtaposed bright colors+그 예술가는 밝은 색을 병치했다  
+vindicate  
+정당성을 입증하다  
+-New evidence vindicated her innocence+새 증거가 그녀의 무죄를 입증했다  
+nonchalant  
+무관심한, 태연한  
+-He remained nonchalant under criticism+그는 비판에도 태연했다  
+pernicious  
+치명적인, 유해한  
+-Smoking has pernicious effects+흡연은 치명적인 영향을 준다  
+altruistic  
+이타적인  
+-She is altruistic and volunteers often+그녀는 이타적이며 자주 자원봉사한다  
+quintessential  
+전형적인, 본질적인  
+-Paris is a quintessential romantic city+파리는 전형적인 낭만 도시다  
+clandestine  
+비밀의, 은밀한  
+-They had a clandestine discussion+그들은 비밀 대화를 나눴다  
+juxtaposition  
+병치, 나란히 놓기  
+-The juxtaposition of styles is unique+스타일의 병치는 독특하다  
+erudite  
+학식 있는, 박식한  
+-The professor is erudite and insightful+그 교수는 박식하고 통찰력 있다  
+esoteric  
+난해한, 소수만 이해하는  
+-The topic is esoteric and complex+그 주제는 난해하고 복잡하다  
+insidious  
+서서히 퍼지는, 교활한  
+-The disease is insidious+그 질병은 서서히 진행된다  
+sagacious  
+현명한, 명민한  
+-His sagacious advice was helpful+그의 현명한 조언은 유용했다  
+transient  
+일시적인, 순간적인  
+-Her happiness was transient+그녀의 행복은 일시적이었다  
+arduous  
+힘든, 고된  
+-The climb was arduous for everyone+등산은 모두에게 힘들었다  
+spurious  
+거짓된, 가짜의  
+-He made spurious claims+그는 거짓된 주장을 했다  
+enigmatic  
+수수께끼 같은, 불가사의한  
+-Her smile was enigmatic+그녀의 미소는 수수께끼 같았다  
+ostensible  
+표면상의, 겉보기의  
+-His ostensible reason was illness+그의 표면적 이유는 병이었다  
+acrimonious  
+신랄한, 험악한  
+-The debate became acrimonious+토론이 험악해졌다  
+assiduous  
+근면한, 성실한  
+-She was assiduous in her tasks+그녀는 일을 성실히 했다  
+proclivity  
+성향, 경향  
+-He has a proclivity for puzzles+그는 퍼즐을 좋아하는 경향이 있다

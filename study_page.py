@@ -1,5 +1,3 @@
-# study_page.py
-
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QListWidget, QListWidgetItem, QLineEdit, QTableWidget, QTableWidgetItem,
@@ -31,8 +29,8 @@ class WordbookListItem(QWidget):
         self.setLayout(layout)
 
 class StudyPage(QWidget):
-    # 작은 창 열기 요청 신호 -> 만약 필요하다면
-    open_small_window_signal = pyqtSignal()
+    # 작은 창 열기 요청 신호 (단어장 리스트를 전달)
+    open_small_window_signal = pyqtSignal(list)
 
     def __init__(self, fonts=None, word_list=None, parent=None):
         super().__init__(parent)
@@ -237,13 +235,15 @@ class StudyPage(QWidget):
         words = self.wordbooks.get(title, [])
         
         self.word_table.setRowCount(len(words))
-        for row_idx, (eng, kor) in enumerate(words):
+        for row_idx, word_data in enumerate(words):
             if self.eng_first_radio.isChecked():
-                self.word_table.setItem(row_idx, 0, QTableWidgetItem(eng))
-                self.word_table.setItem(row_idx, 1, QTableWidgetItem(kor))
+                eng = word_data.get('word', "")
+                kor = word_data.get('meaning', "")
             else:
-                self.word_table.setItem(row_idx, 0, QTableWidgetItem(kor))
-                self.word_table.setItem(row_idx, 1, QTableWidgetItem(eng))
+                eng = word_data.get('meaning', "")
+                kor = word_data.get('word', "")
+            self.word_table.setItem(row_idx, 0, QTableWidgetItem(eng))
+            self.word_table.setItem(row_idx, 1, QTableWidgetItem(kor))
         
         self.word_table.resizeColumnsToContents()
 
@@ -255,5 +255,15 @@ class StudyPage(QWidget):
         self.display_wordbook(selected_items[0])
 
     def request_open_small_window(self):
-        """작은 창 열기 요청 신호 발생"""
-        self.open_small_window_signal.emit()
+        """작은 창 열기 요청 신호 발생 (현재 선택된 단어장 전달)"""
+        selected_items = self.list_widget.selectedItems()
+        if not selected_items:
+            QMessageBox.warning(self, "경고", "먼저 단어장을 선택하세요.")
+            return
+        list_item_widget = self.list_widget.itemWidget(selected_items[0])
+        title = list_item_widget.title_label.text()
+        word_list = self.wordbooks.get(title, [])
+        if not word_list:
+            QMessageBox.warning(self, "경고", "선택된 단어장이 비어 있습니다.")
+            return
+        self.open_small_window_signal.emit(word_list)

@@ -4,13 +4,15 @@ import os
 
 def parse_wordbook(file_path):
     """
-    단어장 파일을 파싱하여 단어와 뜻의 리스트를 반환하고, 단어의 개수를 셉니다.
+    단어장 파일을 파싱하여 단어, 뜻, 예문의 리스트를 반환하고, 단어의 개수를 셉니다.
     
     파일 형식:
     단어
     뜻
+    예문 (선택 사항, 한 줄로 '-example +korean example')
     단어
     뜻
+    예문 (선택 사항)
     ...
     """
     words = []
@@ -18,14 +20,26 @@ def parse_wordbook(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = [line.strip() for line in f if line.strip()]
         
-        # 단어와 뜻이 번갈아 나오므로 짝수 개의 라인이어야 함
-        if len(lines) % 2 != 0:
-            raise ValueError("단어장 파일의 형식이 올바르지 않습니다.")
-        
-        for i in range(0, len(lines), 2):
+        i = 0
+        while i < len(lines):
             word = lines[i]
-            meaning = lines[i+1]
-            words.append((word, meaning))
+            meaning = lines[i+1] if i+1 < len(lines) else ""
+            example = ""
+            if i+2 < len(lines) and lines[i+2].startswith('-'):
+                example_line = lines[i+2]
+                # 예문을 '-' 제거 후 '+'로 분리
+                if '+' in example_line:
+                    parts = example_line[1:].split('+', 1)  # '-' 제거 후 분리
+                    if len(parts) == 2:
+                        example = f"-{parts[0].strip()}+{parts[1].strip()}"
+                    else:
+                        example = example_line  # '+'가 없는 경우 그대로
+                else:
+                    example = example_line  # '+'가 없는 경우 그대로
+                i += 3
+            else:
+                i += 2
+            words.append({'word': word, 'meaning': meaning, 'example': example})
         
         word_count = len(words)
         return words, word_count
