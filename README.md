@@ -57,6 +57,13 @@
  - 한글/영어/단어 아는게 많을 수록 인터페이스가 단촐할 것입니다...
  - 계속 다른 대본을 만들어서 검증해보세요!
 
+<audio controls>
+  <source src="./words/201501121801/script_temp.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+> 생성된 라디오를 들어보세요! 👆
+
 <br><br>
 
 
