@@ -1,5 +1,6 @@
 import os
 import shutil
+from datetime import datetime
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QListWidget, QListWidgetItem, QLineEdit, QTableWidget, QTableWidgetItem,
@@ -8,14 +9,13 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 
-# wordbook_manager 모듈 임포트
+# 수정된 wordbook_manager 모듈 임포트
 from wordbook_manager import load_wordbooks, parse_wordbook
 
 
 class WordbookListItem(QWidget):
     def __init__(self, title, word_count, parent=None):
         super().__init__(parent)
-
         self.title_label = QLabel(title)
         self.count_label = QLabel(f"({word_count})")
 
@@ -136,11 +136,12 @@ class StudyPage(QWidget):
         right_box_layout = QVBoxLayout()
         right_box_layout.setSpacing(3)
 
-        # (2-2-1) 제목(날짜) 입력 + 저장 버튼
+        # (2-2-1) 제목(단어장 이름) 입력 + 저장 버튼
         date_layout = QHBoxLayout()
-        # 여기서 '학습할 날짜' 대신 '선택된 단어장 제목'을 보여주도록 활용
+        # '학습할 단어장을 선택해주세요.' 대신 '선택된 단어장 제목'을 보여줌
         self.date_edit = QLineEdit()
         self.date_edit.setPlaceholderText("학습할 단어장을 선택해주세요.")
+        self.date_edit.setReadOnly(True)  # 사용자가 수정하지 못하도록 설정
 
         # 저장 버튼: 테이블 수정한 내용 파일로 저장
         self.save_button = QPushButton("저장")
@@ -207,25 +208,30 @@ class StudyPage(QWidget):
         right_box_layout.addWidget(self.start_button, alignment=Qt.AlignRight)
 
         # Middle layout 합치기
-        # 기존 스트레치 팩터를 2:5에서 1:4로 변경하여 왼쪽을 더 좁게
         middle_layout.addLayout(left_box_layout, 1)
         middle_layout.addLayout(right_box_layout, 4)
 
         main_layout.addLayout(middle_layout)
 
     def load_initial_wordbooks(self):
-        """초기 단어장 로드 (words 디렉토리에서)"""
+        """초기 단어장 로드 (words 디렉토리에서 _wordbook.txt만)"""
         words_directory = os.path.join(os.path.dirname(__file__), 'words')
         loaded_wordbooks, loaded_word_counts = load_wordbooks(words_directory)
         self.wordbooks = loaded_wordbooks
         self.word_counts = loaded_word_counts
 
-        # 이미 존재하는 txt 파일은 title-파일경로 매핑
-        for filename in os.listdir(words_directory):
-            if filename.endswith('.txt'):
-                title = os.path.splitext(filename)[0]
-                self.wordbook_paths[title] = os.path.join(words_directory, filename)
+        # 이미 존재하는 _wordbook.txt 파일은 title-파일경로 매핑 (재귀 탐색으로 얻은 경로)
+        for root, dirs, files in os.walk(words_directory):
+            for filename in files:
+                if filename.endswith('_wordbook.txt'):
+                    # 제목에서 '_wordbook' 제거
+                    title = os.path.splitext(filename)[0]
+                    if title.endswith('_wordbook'):
+                        title = title[:-len('_wordbook')]
+                    file_path = os.path.join(root, filename)
+                    self.wordbook_paths[title] = file_path
 
+        # 로드된 단어장들을 리스트에 표시
         for title, count in self.word_counts.items():
             item_widget = WordbookListItem(title, count)
             list_item = QListWidgetItem(self.list_widget)
@@ -251,39 +257,55 @@ class StudyPage(QWidget):
     def load_and_add_wordbook(self, file_path):
         """
         단어장 파일을 로드하고 리스트에 추가.
-        프로그램 재시작 후에도 유지하도록 words 폴더에 복사해둔다(이미 있지 않은 경우).
+        프로그램 재시작 후에도 유지하도록 
+        words/YYMMDD_HHMM/ (예: 250112_1754) 폴더에 복사해둔다 (이미 없으면).
+        파일 이름은 자동으로 `_wordbook.txt` 형태로 맞춰 저장한다.
         """
-        words_dir = os.path.join(os.path.dirname(__file__), 'words')
+        # (1) 날짜 폴더 생성: 예) 2025년 1월 12일 17시 54분 -> '250112_1754'
+        date_folder_name = datetime.now().strftime('%y%m%d_%H%M')
+        words_dir = os.path.join(os.path.dirname(__file__), 'words', date_folder_name)
         if not os.path.exists(words_dir):
             os.makedirs(words_dir, exist_ok=True)
 
-        # 외부 경로인 경우 words 폴더에 복사
-        if not file_path.startswith(words_dir):
-            new_path = os.path.join(words_dir, os.path.basename(file_path))
-            # 동일 이름 파일이 없으면 복사
-            if not os.path.exists(new_path):
-                try:
-                    shutil.copyfile(file_path, new_path)
-                except Exception as e:
-                    QMessageBox.warning(self, "오류", f"파일 복사 중 오류 발생: {e}")
-                    return
-            file_path = new_path
+        # (2) 현재 선택한 파일의 원래 이름(확장자 제외)을 가져옴
+        basename = os.path.splitext(os.path.basename(file_path))[0]
 
-        # 파싱 후 리스트에 추가
-        words, word_count = parse_wordbook(file_path)
+        # (3) _wordbook.txt 형식으로 새 파일명 생성
+        #     이미 _wordbook 으로 끝난다면, 또 붙이지 않고 그대로 쓸 수도 있음
+        if not basename.endswith('_wordbook'):
+            new_filename = f"{basename}_wordbook.txt"
+        else:
+            new_filename = f"{basename}.txt"
+
+        new_path = os.path.join(words_dir, new_filename)
+
+        # (4) 파일 복사
+        try:
+            shutil.copyfile(file_path, new_path)
+        except Exception as e:
+            QMessageBox.warning(self, "오류", f"파일 복사 중 오류 발생: {e}")
+            return
+
+        # (5) 복사된 파일을 파싱하여 wordbooks에 로드
+        words, word_count = parse_wordbook(new_path)
         if word_count == 0:
             QMessageBox.warning(self, "오류", f"'{os.path.basename(file_path)}' 파일을 로드할 수 없습니다.")
             return
 
-        title = os.path.splitext(os.path.basename(file_path))[0]
+        # 타이틀은 파일명에서 '_wordbook'을 제거한 부분
+        title = os.path.splitext(new_filename)[0]
+        if title.endswith('_wordbook'):
+            title = title[:-len('_wordbook')]
+
+        # 이미 존재하는 타이틀인지 확인
         if title in self.wordbooks:
             QMessageBox.information(self, "정보", f"'{title}' 단어장은 이미 추가되었습니다.")
             return
 
+        # wordbooks, word_counts, wordbook_paths에 정보 저장
         self.wordbooks[title] = words
         self.word_counts[title] = word_count
-        # 파일 경로 저장
-        self.wordbook_paths[title] = file_path
+        self.wordbook_paths[title] = new_path
 
         # 리스트에 UI 아이템 추가
         item_widget = WordbookListItem(title, word_count)
@@ -294,7 +316,6 @@ class StudyPage(QWidget):
 
     def display_wordbook(self, item):
         """리스트에서 단어장을 선택했을 때 단어 테이블에 표시하고, 제목을 date_edit에 입력"""
-        row = self.list_widget.row(item)
         list_item_widget = self.list_widget.itemWidget(item)
         title = list_item_widget.title_label.text()
 
@@ -317,12 +338,9 @@ class StudyPage(QWidget):
             self.word_table.setItem(row_idx, 1, QTableWidgetItem(kor))
 
             # (2) 예문 처리:
-            # 기존 파일은 "-영문 +한글" 형태. UI에는 앞의 '-'를 빼고 "영문 +한글" 형태로 표시
             example_raw = word_data.get('example', "").strip()  # 예: "-hello +안녕"
             if example_raw.startswith('-'):
                 example_raw = example_raw[1:].strip()  # 맨 앞 '-' 제거
-
-            # 그대로 테이블에 쓰기
             self.word_table.setItem(row_idx, 2, QTableWidgetItem(example_raw))
 
         self.word_table.resizeColumnsToContents()
@@ -350,7 +368,6 @@ class StudyPage(QWidget):
             QMessageBox.warning(self, "경고", "해당 단어장의 정보를 찾을 수 없습니다.")
             return
 
-        # 기존 wordbook 데이터를 가져와서, 라디오버튼 설정(영단어/뜻 위치) 보정 등 처리
         original_words = self.wordbooks[title]
         updated_words = []
 
@@ -366,10 +383,7 @@ class StudyPage(QWidget):
             kor_text = kor_item.text().strip()
             ex_text = ex_item.text().strip()
 
-            # 원본에서 실제 'word'가 무엇이었는지(영단어 vs 뜻) 확인
-            original_data = original_words[row_idx]
-
-            # 라디오버튼에 따라, 실제 word/meaning 위치를 다시 맞춰준다
+            # 라디오버튼에 따라 실제 word/meaning 위치를 다시 맞춰준다
             if self.eng_first_radio.isChecked():
                 word_str = eng_text
                 meaning_str = kor_text
@@ -378,11 +392,10 @@ class StudyPage(QWidget):
                 meaning_str = eng_text
 
             # 예문이 비어있지 않다면 맨 앞에 '-' 붙여서 저장
-            # 사용자가 "영문 +한글" 형태를 지키는지 여부는 별도 체크 없이 그대로 저장
             if ex_text:
-                ex_final = "-" + ex_text  # 예: "-hello +안녕"
+                ex_final = "-" + ex_text
             else:
-                ex_final = ""             # 예문 없는 경우
+                ex_final = ""
 
             updated_words.append({
                 'word': word_str,
@@ -400,7 +413,6 @@ class StudyPage(QWidget):
                     if wd['example']:
                         f.write(wd['example'] + "\n")
 
-            # 메모리 데이터도 최신화
             self.wordbooks[title] = updated_words
             self.word_counts[title] = len(updated_words)
 

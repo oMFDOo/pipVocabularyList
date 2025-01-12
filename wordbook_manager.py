@@ -1,5 +1,3 @@
-# wordbook_manager.py
-
 import os
 
 def parse_wordbook(file_path):
@@ -49,7 +47,7 @@ def parse_wordbook(file_path):
 
 def load_wordbooks(directory):
     """
-    지정된 디렉토리에서 모든 단어장 파일을 로드하여 반환합니다.
+    지정된 디렉토리(및 하위 폴더)에서 모든 단어장 파일(_wordbook.txt)만 재귀적으로 로드하여 반환합니다.
     
     Args:
         directory (str): 단어장 파일들이 저장된 디렉토리 경로.
@@ -65,15 +63,19 @@ def load_wordbooks(directory):
         print(f"Directory '{directory}' does not exist.")
         return wordbooks, word_counts
     
-    for filename in os.listdir(directory):
-        if filename.endswith('.txt'):
-            file_path = os.path.join(directory, filename)
-            words, count = parse_wordbook(file_path)
-            if count > 0:
-                title = os.path.splitext(filename)[0]
-                wordbooks[title] = words
-                word_counts[title] = count
-            else:
-                print(f"Failed to load wordbook: {filename}")
+    # 폴더를 재귀적으로 순회하며 `_wordbook.txt` 파일을 찾는다
+    for root, dirs, files in os.walk(directory):
+        for filename in files:
+            # 여기서 _wordbook.txt 로 끝나는 파일만 로드
+            if filename.endswith('_wordbook.txt'):
+                file_path = os.path.join(root, filename)
+                words, count = parse_wordbook(file_path)
+                if count > 0:
+                    # 제목에서 '_wordbook' 제거
+                    title = os.path.splitext(filename)[0].replace('_wordbook', '')
+                    wordbooks[title] = words
+                    word_counts[title] = count
+                else:
+                    print(f"Failed to load wordbook: {filename}")
     
     return wordbooks, word_counts
