@@ -5,8 +5,9 @@ from PyQt5.QtWidgets import (
     QComboBox, QLineEdit, QTextEdit, QTableWidget, QTableWidgetItem,
     QSlider, QAbstractItemView, QMessageBox, QCheckBox
 )
-from PyQt5.QtCore import Qt, QUrl, QTimer
+from PyQt5.QtCore import Qt, QUrl, QTimer, QSize
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
+from PyQt5.QtGui import QFont, QIcon
 
 # OpenAI API
 from openai_api import request_radio_script
@@ -28,36 +29,91 @@ class RadioPage(QWidget):
         self.media_player = QMediaPlayer(None, QMediaPlayer.StreamPlayback)
         self.is_playing = False
 
+        # 이미지 파일 경로
+        self.start_img_path = os.path.join(os.path.dirname(__file__), "assets", "audio_start_btn.png")
+        self.stop_img_path = os.path.join(os.path.dirname(__file__), "assets", "audio_stop_btn.png")
+
         self.setup_ui()
         self.load_wordbooks_into_combobox()
 
     def setup_ui(self):
+        self.setStyleSheet("""
+            QPushButton {
+                color: #fff;
+                background-color: #45b1e9;
+                border: 1px solid #ffffffff;
+                border-radius: 6px;
+                padding: 10px;
+                width: 100%;
+            }
+            QPushButton:hover {
+                background-color:#229bd8;
+            }
+            QLabel {
+                font-size: 15px;
+            }
+            QLineEdit {
+                height: 20px;
+                border: 2px solid #45b1e9;
+                border-radius: 6px;
+                padding: 5px;
+                font-family: 'Pretendard'; 
+                font-size: 14px;
+            }
+            QTableWidget {
+                border: 2px solid #45b1e9;
+                border-radius: 6px;
+            }
+            QListWidget {
+                border: 2px solid #45b1e9;
+                border-radius: 6px;
+            }
+        """)
         layout = QVBoxLayout(self)
-        layout.setSpacing(8)
+        layout.setSpacing(3)
+        layout.setContentsMargins(15, 5, 30, 30)
+        
+        # (1) 상단 타이틀, 설명
+        layout.addSpacing(20)
+        title_label = QLabel("실전 듣기")
+        title_label_font = QFont("esamanru Bold")
+        title_label.setFont(title_label_font)
+        title_label.setStyleSheet("color: #458EE9; font-size: 30px;")
+        desc_label = QLabel("내 단어장의 단어를 사용한 라디오를 생성하고 들어봐요!")
+        desc_label.setStyleSheet("font-family: 'Pretendard Light'; margin-bottom: 10px; font-size: 15px;")
+        layout.addWidget(title_label)
+        layout.addWidget(desc_label)
 
-        # 상단: 콤보박스(단어장), OpenAI key, '라디오 생성' 버튼
+        # 상단: 콤보박스(단어장), OpenAI key, '라디오 생성' 버튼 등
         top_layout = QHBoxLayout()
         self.wordbook_combo = QComboBox()
         self.wordbook_combo.currentIndexChanged.connect(self.on_wordbook_selected)
-        top_layout.addWidget(QLabel("단어장 선택:"))
+        self.wordbook_combo.setStyleSheet("font-family: 'Pretendard'; font-size: 16px; margin-left: 10px; min-width: 250px;")
+        left_label = QLabel("단어장 선택")
+        left_label.setStyleSheet("font-family: 'esamanru Light'; font-size: 23px; color: #458EE9;")
+        top_layout.addWidget(left_label)
         top_layout.addWidget(self.wordbook_combo)
 
         self.openai_key_edit = QLineEdit()
         self.openai_key_edit.setEchoMode(QLineEdit.Password)
         self.openai_key_edit.setPlaceholderText("OpenAI API Key를 입력하세요.")
+        self.openai_key_edit.setStyleSheet("font-family: 'Pretendard Bold'; font-size: 16px;")
         top_layout.addWidget(self.openai_key_edit)
 
         self.generate_button = QPushButton("라디오 생성")
+        self.generate_button.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.generate_button.clicked.connect(self.on_generate_radio)
         top_layout.addWidget(self.generate_button)
 
         # 단어 테이블 표시/숨기기 토글 버튼
-        self.toggle_table_button = QPushButton("테이블 숨기기")
+        self.toggle_table_button = QPushButton("단어 가리기")
+        self.toggle_table_button.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.toggle_table_button.clicked.connect(self.toggle_word_table)
         top_layout.addWidget(self.toggle_table_button)
 
         # 대본/오디오 재로딩 버튼
-        self.reload_button = QPushButton("대본/오디오 재로딩")
+        self.reload_button = QPushButton("파일 새로고침")
+        self.reload_button.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.reload_button.clicked.connect(self.on_reload)
         top_layout.addWidget(self.reload_button)
 
@@ -70,6 +126,7 @@ class RadioPage(QWidget):
         self.word_table = QTableWidget()
         self.word_table.setColumnCount(2)
         self.word_table.setHorizontalHeaderLabels(["영단어", "뜻"])
+        self.word_table.setStyleSheet("font-family: 'Pretendard'; font-size: 16px; max-width: 300px;")
         self.word_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.word_table.setSelectionMode(QAbstractItemView.NoSelection)
         self.word_table.verticalHeader().setVisible(False)
@@ -77,14 +134,17 @@ class RadioPage(QWidget):
 
         # 대본 및 체크박스
         right_layout = QVBoxLayout()
-        script_lbl = QLabel("생성된 라디오 대본")
+        script_lbl = QLabel("라디오 대본")
+        script_lbl.setStyleSheet("font-family: 'esamanru Bold'; font-size: 23px; color: #458EE9;")
         right_layout.addWidget(script_lbl)
 
         chk_layout = QHBoxLayout()
         self.chk_eng = QCheckBox("영문 대본 보기")
+        self.chk_eng.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.chk_eng.setChecked(True)
         self.chk_eng.stateChanged.connect(self.update_script_text_display)
         self.chk_kor = QCheckBox("한글 대본 보기")
+        self.chk_kor.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.chk_kor.setChecked(True)
         self.chk_kor.stateChanged.connect(self.update_script_text_display)
         chk_layout.addWidget(self.chk_eng)
@@ -95,15 +155,23 @@ class RadioPage(QWidget):
 
         self.script_edit = QTextEdit()
         self.script_edit.setReadOnly(True)
+        self.script_edit.setStyleSheet("font-family: 'Pretendard'; font-size: 18px; border: 2px solid #45b1e9; border-radius: 6px;")
         right_layout.addWidget(self.script_edit, stretch=1)
 
         center_layout.addLayout(right_layout, stretch=1)
         layout.addLayout(center_layout)
 
-        # 하단: 재생/슬라이더/시간
+        # 하단: 재생 버튼(이미지 아이콘), 슬라이더, 시간 레이블
         bottom_layout = QHBoxLayout()
-        self.play_button = QPushButton("재생")
+
+        # 버튼 자체를 이미지 아이콘으로 사용하기 위해 setIcon() 이용
+        self.play_button = QPushButton("")
         self.play_button.setEnabled(False)
+        self.play_button.setFixedSize(50, 50)
+        # 초기 상태(정지)에서는 재생 버튼 이미지로 설정
+        self.play_button.setStyleSheet("background-color: #ffffff; border: 1px solid #ffffff;")
+        self.play_button.setIcon(QIcon(self.start_img_path))
+        self.play_button.setIconSize(QSize(50, 50))
         self.play_button.clicked.connect(self.on_play_pause)
         bottom_layout.addWidget(self.play_button)
 
@@ -117,7 +185,7 @@ class RadioPage(QWidget):
 
         layout.addLayout(bottom_layout)
 
-        # 미디어플레이어 시그널
+        # 미디어플레이어 시그널 연결
         self.media_player.positionChanged.connect(self.on_position_changed)
         self.media_player.durationChanged.connect(self.on_duration_changed)
         self.media_player.mediaStatusChanged.connect(self.on_media_status_changed)
@@ -159,15 +227,20 @@ class RadioPage(QWidget):
             self.word_table.setItem(i, 0, QTableWidgetItem(w.get('word', '')))
             self.word_table.setItem(i, 1, QTableWidgetItem(w.get('meaning', '')))
         self.word_table.resizeColumnsToContents()
-
+        
         # 2) 대본, 음성 초기화
         self.parsed_script_lines = []
         self.script_edit.clear()
+
+        # 버튼 상태 초기화
         self.play_button.setEnabled(False)
+        self.is_playing = False
+        # 버튼 이미지를 재생 이미지로 변경
+        self.play_button.setIcon(QIcon(self.start_img_path))
+
         self.position_slider.setValue(0)
         self.position_slider.setRange(0, 0)
         self.time_label.setText("00:00 / 00:00")
-        # None 대신 빈 QMediaContent를 전달해 초기화
         self.media_player.setMedia(QMediaContent())
 
         # script.txt 존재 시 -> 파싱
@@ -296,14 +369,21 @@ class RadioPage(QWidget):
         return result
 
     def on_play_pause(self):
+        """
+        재생/일시정지 버튼 클릭 시 아이콘을 토글합니다.
+        오디오가 정지 중이면 '재생' 아이콘(assets/audio_start_btn.png)
+        재생 중이면 '정지' 아이콘(assets/audio_stop_btn.png)으로 변경합니다.
+        """
         if self.is_playing:
+            # 재생 중이면 일시정지하고 재생 아이콘으로 변경
             self.media_player.pause()
-            self.play_button.setText("재생")
             self.is_playing = False
+            self.play_button.setIcon(QIcon(self.start_img_path))
         else:
+            # 정지 중이면 재생 시작하고 정지 아이콘으로 변경
             self.media_player.play()
-            self.play_button.setText("일시정지")
             self.is_playing = True
+            self.play_button.setIcon(QIcon(self.stop_img_path))
 
     def on_slider_moved(self, pos):
         self.media_player.setPosition(pos)
@@ -313,6 +393,7 @@ class RadioPage(QWidget):
         dur = self.media_player.duration()
         cur = pos // 1000
         tot = dur // 1000
+        self.time_label.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
         self.time_label.setText(f"{self.sec_to_min_sec(cur)} / {self.sec_to_min_sec(tot)}")
 
     def on_duration_changed(self, dur):
@@ -342,10 +423,15 @@ class RadioPage(QWidget):
             self.toggle_table_button.setText("테이블 보이기")
         else:
             self.word_table.setVisible(True)
-            self.toggle_table_button.setText("테이블 숨기기")
+            self.toggle_table_button.setText("단어 가리기")
 
     # 대본/오디오 재로딩
     def on_reload(self):
         idx = self.wordbook_combo.currentIndex()
         words_dir = os.path.join(os.path.dirname(__file__), "words")
         self.all_data_map = load_wordbooks_with_script_audio(words_dir)
+        # 다시 콤보박스 선택 로직 수행
+        if idx >= 0:
+            self.on_wordbook_selected(idx)
+        self.update()
+        self.repaint()
