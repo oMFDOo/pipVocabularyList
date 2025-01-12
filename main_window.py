@@ -9,7 +9,7 @@ from effects import apply_shadow_effect
 
 # 개별 페이지 임포트
 from study_page import StudyPage
-from word_page import WordPage
+from radio_page import RadioPage
 from history_page import HistoryPage
 
 class MainWindow(QMainWindow):
@@ -88,11 +88,11 @@ class MainWindow(QMainWindow):
 
         # 페이지들 생성 & stacked_widget에 추가
         self.study_page = StudyPage(self.fonts)
-        self.word_page = WordPage()
+        self.radio_page = RadioPage()
         self.history_page = HistoryPage()
 
         self.stacked_widget.addWidget(self.study_page)   # index 0
-        self.stacked_widget.addWidget(self.word_page)    # index 1
+        self.stacked_widget.addWidget(self.radio_page)    # index 1
         self.stacked_widget.addWidget(self.history_page) # index 2
 
         # 기본 페이지는 '학습'(index 0)
