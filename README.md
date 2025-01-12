@@ -61,6 +61,19 @@
 
 <br><br>
 
+### 윈도우, 맥, 리눅스 지원 🙊
+|구분||||
+|:--:|:--:|:--:|:--:|
+|Windows|![image](https://github.com/user-attachments/assets/3f7bb958-0725-44f0-ba7f-e931340bb333)|![image](https://github.com/user-attachments/assets/3360e6cb-81f9-4c1f-a4e4-1315cf1e5eaf)|![image](https://github.com/user-attachments/assets/61337217-aca0-4c9a-bf59-48599d71bf8c)|
+|Mac|내일 찍어야징|||
+|Linux|![Screenshot From 2025-01-13 00-23-15](https://github.com/user-attachments/assets/61de2993-0cb3-435e-b6b5-08e1d1875b22)|![Screenshot From 2025-01-13 00-22-31](https://github.com/user-attachments/assets/7efb828b-f9d8-48ed-9173-4e6d251531ea)|![Screenshot From 2025-01-13 00-23-23](https://github.com/user-attachments/assets/8bbaf022-395d-4523-af00-d01237b0cd0b)|
+
+
+
+
+
+
+
 
 ## 실행법 및 주의사항
 
