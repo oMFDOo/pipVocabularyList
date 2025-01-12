@@ -45,24 +45,19 @@
 ### 👻 자만하는 나를 위한 실전 검증!
 : 어디 직접 외운 단어로 구성된 라디오를 알아듣는지 테스트 해보시지!
 
-[![단어 라디오 기본](https://github.com/user-attachments/assets/998a04da-b7f8-4815-904e-256178cb3fc2)](./documents/단어_라디오_기본.mp4)
+[Link text](https://github.com/user-attachments/assets/3427885d-b1d0-4c81-8a94-967d6fe900fc)
 > 아닛! 단어장을 선택해서 라디오를 만들어준다구? (클릭해서 영상을 확인하세요!)
 
 <br><br>
 
-[![단어 라디오 생성](https://github.com/user-attachments/assets/47a0433c-df75-4f1e-a199-b57c54d16505)](./documents/단어_라디오_생성.mp4)
+
+[Link text](https://github.com/user-attachments/assets/3ad33cfe-e5ae-4c79-94e6-1087fd67d425)
+
  > 좋아! 직접 라디오를 생성해보자!! (클릭해서 영상을 확인하세요!)
  - 대본 생성에 [OpenAI API](https://openai.com/index/openai-api/)가 들어서 5$ 정도만 구매해도 한참 쓴다...!! 이건 투자할 수 있따!
  - 단어를 고르고, 생성하기 누른 뒤 새로고침을 연타하세요!
  - 한글/영어/단어 아는게 많을 수록 인터페이스가 단촐할 것입니다...
  - 계속 다른 대본을 만들어서 검증해보세요!
-
-<audio controls>
-  <source src="./words/201501121801/script_temp.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
-
-> 생성된 라디오를 들어보세요! 👆
 
 <br><br>
 
