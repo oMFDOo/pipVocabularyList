@@ -1,9 +1,11 @@
+import os
 from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QPushButton, QLabel, QSizePolicy
 from PyQt5.QtGui import QIcon, QFontMetrics
 from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
 
-from window_position import move_to_bottom_right, move_to_bottom_left
+from window_position import move_to_bottom_left
 from effects import apply_shadow_effect
+from tts_utils import play_tts_in_background
 
 class SmallWindow(QMainWindow):
     open_main_window_signal = pyqtSignal()  # 메인 창 열기 요청 신호
@@ -23,7 +25,7 @@ class SmallWindow(QMainWindow):
         # 타이머
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.auto_next_word)
-        # 타이머는 단어장이 설정될 때 시작됩니다.
+        # 단어장이 설정될 때 시작됩니다.
 
         self.setup_ui()
 
@@ -33,9 +35,9 @@ class SmallWindow(QMainWindow):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         apply_shadow_effect(self)
 
-        # 초기 위치을 좌하단으로 설정 (필요 시 변경 가능)
+        # 초기 위치 좌하단
         move_to_bottom_left(self)
-        # move_to_bottom_right(self)  # 필요 시 교체
+        # move_to_bottom_right(self)
 
         self.setStyleSheet("""
             QMainWindow {
@@ -93,7 +95,7 @@ class SmallWindow(QMainWindow):
         # 예문 표시 라벨
         self.example_display = QLabel(self)
         self.example_display.setAlignment(Qt.AlignTop | Qt.AlignCenter)
-        self.example_display.setWordWrap(False)  # 단어 줄 바꿈 비활성화
+        self.example_display.setWordWrap(False)
         self.example_display.setStyleSheet("color: gray; font-size: 12px;")
         self.example_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         layout.addWidget(self.example_display, 2, 1, Qt.AlignCenter)
@@ -116,15 +118,12 @@ class SmallWindow(QMainWindow):
 
         self.setCentralWidget(container)
 
-        # 초기 단어 세팅 (단어장이 설정될 때)
-        # self.update_word_display()  # 단어장이 없으므로 호출하지 않음
-
     def set_word_list(self, word_list):
         """단어장을 설정하고 초기 상태로 업데이트"""
         self.word_list = word_list
         self.current_index = 0
         self.update_word_display()
-        self.timer.start(5000)  # 타이머 시작
+        self.timer.start(5000)  # 5초 간격으로 auto_next_word 실행
 
     # ============ 기능 메서드들 ============ #
     def auto_next_word(self):
@@ -143,7 +142,8 @@ class SmallWindow(QMainWindow):
         if self.current_index > 0:
             self.current_index -= 1
         else:
-            self.current_index = len(self.word_list) - 1  # 뒤로 돌렸을 때 마지막으로
+            # 뒤로 돌리면 마지막 단어로
+            self.current_index = len(self.word_list) - 1
         self.update_word_display()
         self.timer.start(5000)  # 타이머 리셋
 
@@ -160,20 +160,16 @@ class SmallWindow(QMainWindow):
     def toggle_example(self):
         """예문 표시 여부를 토글"""
         self.is_example_shown = not self.is_example_shown
-
         if self.is_example_shown:
             # 예문이 보이는 상태 -> 버튼 아이콘: hide_example
             self.toggle_example_button.setIcon(QIcon("assets/hide_example.png"))
-            # self.resize(330, 110)  # 예문 표시 시 원래 크기
         else:
             # 예문이 숨겨진 상태 -> 버튼 아이콘: show_example
             self.toggle_example_button.setIcon(QIcon("assets/show_example.png"))
-            # self.resize(330, 110)  # 예문 숨길 시 창 크기 줄이기
-
         self.update_word_display()
 
     def update_word_display(self):
-        """현재 단어 및 정보 표시 및 창 크기 조정"""
+        """현재 단어 및 정보 표시 및 TTS 재생"""
         if not self.word_list:
             self.word_display.setText("단어장이 설정되지 않았습니다.")
             self.example_display.setText("")
@@ -196,52 +192,55 @@ class SmallWindow(QMainWindow):
             f"<p style='margin: 0 0 3px 0; font-family: {pretendard_regular}; font-size: 14px;'>{meaning}</p>"
         )
 
-        # 예문 표시 여부에 따라 처리
+        # 예문 표시
         if self.is_example_shown and example.startswith('-'):
-            # 예문을 '-'로 시작하고 '+'로 분리
+            # '-'로 시작하고, '+'를 기준으로 영문, 국문 예문 분리
             if '+' in example:
-                parts = example[1:].split('+', 1)  # '-' 제거 후 분리
+                parts = example[1:].split('+', 1)  # '-' 제거 후 나머지 부분 split
                 if len(parts) == 2:
                     eng_example = parts[0].strip()
                     kor_example = parts[1].strip()
                     example_text = f"{eng_example}\n{kor_example}"
                 else:
-                    example_text = example  # '+'가 없는 경우 그대로
+                    example_text = example  # '+' 제대로 없으면 그대로
             else:
-                example_text = example  # '+'가 없는 경우 그대로
+                example_text = example
             self.example_display.setText(example_text)
         else:
             self.example_display.setText("")
 
+        # 단어 정보 라벨
         self.word_info_label.setText(f"{self.current_index + 1}/{len(self.word_list)}")
+
+        # TTS를 별도의 스레드에서 재생
+        # word만 TTS로 읽도록, 필요 시 meaning까지 넣을 수도 있음
+        tts_text = word  
+        play_tts_in_background(tts_text, lang='en')
 
         # 창 크기 조정
         self.adjust_window_size()
 
     def adjust_window_size(self):
         """예문 텍스트에 따라 창의 너비를 조정"""
-        # 기본 및 최대 너비 설정
         base_width = 330
-        max_width = 370  # 최대 너비를 500으로 설정 (필요에 따라 조정)
+        max_width = 370  # 필요에 따라 조정
 
-        # 폰트 설정 (예문에 사용된 폰트)
         example_font = self.example_display.font()
         metrics = QFontMetrics(example_font)
 
         example_text = self.example_display.text().replace('\n', ' ')
-        text_width = metrics.horizontalAdvance(example_text) + 20  # 여백 추가
+        text_width = metrics.horizontalAdvance(example_text) + 20  # 약간 여백
 
-        # 필요한 너비 계산: base_width보다 크고 max_width를 넘지 않도록
         required_width = max(base_width, text_width)
         required_width = min(required_width, max_width)
 
-        # 현재 창의 너비와 비교하여 변경 필요 시만 조정
+        # 현재 창 너비와 다르면 고정 너비를 조정
         if self.width() != required_width:
             self.setFixedWidth(required_width)
 
     def request_open_main_window(self):
         """큰 창 열기 요청 신호 발생"""
-        self.timer.stop()  # 타이머 정지
+        self.timer.stop()
         self.open_main_window_signal.emit()
 
     # ============ 윈도우 이동 관련 (드래그) ============ #
