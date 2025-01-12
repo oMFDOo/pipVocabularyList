@@ -1,4 +1,3 @@
-# tts_utils.py
 import os
 import tempfile
 import threading
