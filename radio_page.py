@@ -51,6 +51,16 @@ class RadioPage(QWidget):
         self.generate_button.clicked.connect(self.on_generate_radio)
         top_layout.addWidget(self.generate_button)
 
+        # 단어 테이블 표시/숨기기 토글 버튼
+        self.toggle_table_button = QPushButton("테이블 숨기기")
+        self.toggle_table_button.clicked.connect(self.toggle_word_table)
+        top_layout.addWidget(self.toggle_table_button)
+
+        # 대본/오디오 재로딩 버튼
+        self.reload_button = QPushButton("대본/오디오 재로딩")
+        self.reload_button.clicked.connect(self.on_reload)
+        top_layout.addWidget(self.reload_button)
+
         layout.addLayout(top_layout)
 
         # 중앙: 왼쪽(단어 테이블), 오른쪽(대본 + 체크박스)
@@ -98,7 +108,7 @@ class RadioPage(QWidget):
         bottom_layout.addWidget(self.play_button)
 
         self.position_slider = QSlider(Qt.Horizontal)
-        self.position_slider.setRange(0,0)
+        self.position_slider.setRange(0, 0)
         self.position_slider.sliderMoved.connect(self.on_slider_moved)
         bottom_layout.addWidget(self.position_slider, stretch=1)
 
@@ -146,8 +156,8 @@ class RadioPage(QWidget):
         words = info["words"]
         self.word_table.setRowCount(len(words))
         for i, w in enumerate(words):
-            self.word_table.setItem(i, 0, QTableWidgetItem(w.get('word','')))
-            self.word_table.setItem(i, 1, QTableWidgetItem(w.get('meaning','')))
+            self.word_table.setItem(i, 0, QTableWidgetItem(w.get('word', '')))
+            self.word_table.setItem(i, 1, QTableWidgetItem(w.get('meaning', '')))
         self.word_table.resizeColumnsToContents()
 
         # 2) 대본, 음성 초기화
@@ -155,8 +165,9 @@ class RadioPage(QWidget):
         self.script_edit.clear()
         self.play_button.setEnabled(False)
         self.position_slider.setValue(0)
-        self.position_slider.setRange(0,0)
+        self.position_slider.setRange(0, 0)
         self.time_label.setText("00:00 / 00:00")
+        # None 대신 빈 QMediaContent를 전달해 초기화
         self.media_player.setMedia(QMediaContent())
 
         # script.txt 존재 시 -> 파싱
@@ -174,16 +185,16 @@ class RadioPage(QWidget):
         """
         script.txt 파일을 열어 +영문/-한글 라인 파싱
         """
-        lines=[]
+        lines = []
         try:
-            with open(path,'r',encoding='utf-8') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 for line in f:
-                    line=line.strip()
+                    line = line.strip()
                     if not line:
                         continue
-                    sign=line[0]
-                    content=line[1:].strip()
-                    if sign in ["+","-"]:
+                    sign = line[0]
+                    content = line[1:].strip()
+                    if sign in ["+", "-"]:
                         lines.append((sign, content))
         except Exception as e:
             print(f"parse_script_file error: {e}")
@@ -193,11 +204,11 @@ class RadioPage(QWidget):
         """
         영문/한글 체크박스 상태에 따라 대본 표시
         """
-        show_lines=[]
-        for s,c in self.parsed_script_lines:
-            if s=="+" and self.chk_eng.isChecked():
+        show_lines = []
+        for s, c in self.parsed_script_lines:
+            if s == "+" and self.chk_eng.isChecked():
                 show_lines.append(f"+{c}")
-            elif s=="-" and self.chk_kor.isChecked():
+            elif s == "-" and self.chk_kor.isChecked():
                 show_lines.append(f"-{c}")
 
         self.script_edit.setPlainText("\n\n".join(show_lines))
@@ -209,27 +220,27 @@ class RadioPage(QWidget):
         """
         title = self.wordbook_combo.currentText().strip()
         if title not in self.all_data_map:
-            QMessageBox.warning(self,"오류","잘못된 단어장 선택")
+            QMessageBox.warning(self, "오류", "잘못된 단어장 선택")
             return
 
         info = self.all_data_map[title]
         words = info["words"]
         if not words:
-            QMessageBox.warning(self,"오류","단어 목록이 없습니다.")
+            QMessageBox.warning(self, "오류", "단어 목록이 없습니다.")
             return
 
         openai_key = self.openai_key_edit.text().strip()
         if not openai_key:
-            QMessageBox.warning(self,"경고","OpenAI Key 필요")
+            QMessageBox.warning(self, "경고", "OpenAI Key 필요")
             return
 
         # GPT에 넘길 단어 리스트
-        word_list = [ w['word'] for w in words if w.get('word')]
+        word_list = [w['word'] for w in words if w.get('word')]
 
         folder = os.path.dirname(info["wordbook_path"])
-        script_txt = os.path.join(folder,"script.txt")
-        script_wav = os.path.join(folder,"script.wav")
-        temp_mp3 = os.path.join(folder,"script_temp.mp3")
+        script_txt = os.path.join(folder, "script.txt")
+        script_wav = os.path.join(folder, "script.wav")
+        temp_mp3 = os.path.join(folder, "script_temp.mp3")
 
         def worker():
             try:
@@ -237,12 +248,12 @@ class RadioPage(QWidget):
                 script_text = request_radio_script(openai_key, word_list)
 
                 # 2) script.txt 저장
-                with open(script_txt,'w',encoding='utf-8') as f:
+                with open(script_txt, 'w', encoding='utf-8') as f:
                     f.write(script_text.strip())
 
                 # 3) +영문만 모아 TTS -> mp3 -> wav
                 lines = self.parse_script_text(script_text)
-                eng_text = " ".join(c for s,c in lines if s=="+")
+                eng_text = " ".join(c for s, c in lines if s == "+")
                 tts = gTTS(eng_text, lang='en')
                 tts.save(temp_mp3)
 
@@ -256,7 +267,7 @@ class RadioPage(QWidget):
 
                 def ui_up():
                     if self.wordbook_combo.currentText().strip() == title:
-                        self.parsed_script_lines=lines
+                        self.parsed_script_lines = lines
                         self.update_script_text_display()
                         self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(script_wav)))
 
@@ -264,23 +275,23 @@ class RadioPage(QWidget):
 
             except Exception as e:
                 def err():
-                    QMessageBox.critical(self,"오류",f"라디오 생성 실패: {e}")
+                    QMessageBox.critical(self, "오류", f"라디오 생성 실패: {e}")
                 self.call_in_main_thread(err)
 
-        threading.Thread(target=worker,daemon=True).start()
+        threading.Thread(target=worker, daemon=True).start()
 
     def parse_script_text(self, script_text):
         """
         GPT 대본(문자열) -> +영문/-한글 라인 파싱
         """
-        result=[]
+        result = []
         for line in script_text.splitlines():
-            line=line.strip()
+            line = line.strip()
             if not line:
                 continue
-            sign=line[0]
-            content=line[1:].strip()
-            if sign in ["+","-"]:
+            sign = line[0]
+            content = line[1:].strip()
+            if sign in ["+", "-"]:
                 result.append((sign, content))
         return result
 
@@ -288,31 +299,31 @@ class RadioPage(QWidget):
         if self.is_playing:
             self.media_player.pause()
             self.play_button.setText("재생")
-            self.is_playing=False
+            self.is_playing = False
         else:
             self.media_player.play()
             self.play_button.setText("일시정지")
-            self.is_playing=True
+            self.is_playing = True
 
     def on_slider_moved(self, pos):
         self.media_player.setPosition(pos)
 
-    def on_position_changed(self,pos):
+    def on_position_changed(self, pos):
         self.position_slider.setValue(pos)
-        dur=self.media_player.duration()
-        cur=pos//1000
-        tot=dur//1000
+        dur = self.media_player.duration()
+        cur = pos // 1000
+        tot = dur // 1000
         self.time_label.setText(f"{self.sec_to_min_sec(cur)} / {self.sec_to_min_sec(tot)}")
 
-    def on_duration_changed(self,dur):
-        self.position_slider.setRange(0,dur)
+    def on_duration_changed(self, dur):
+        self.position_slider.setRange(0, dur)
 
-    def on_media_status_changed(self,status):
+    def on_media_status_changed(self, status):
         from PyQt5.QtMultimedia import QMediaPlayer
-        if status==QMediaPlayer.LoadedMedia:
-            dur=self.media_player.duration()
-            self.position_slider.setRange(0,dur)
-            tot=dur//1000
+        if status == QMediaPlayer.LoadedMedia:
+            dur = self.media_player.duration()
+            self.position_slider.setRange(0, dur)
+            tot = dur // 1000
             self.time_label.setText(f"00:00 / {self.sec_to_min_sec(tot)}")
             self.play_button.setEnabled(True)
 
@@ -321,5 +332,20 @@ class RadioPage(QWidget):
 
     @staticmethod
     def sec_to_min_sec(sec):
-        m,s = divmod(sec,60)
+        m, s = divmod(sec, 60)
         return f"{m:02d}:{s:02d}"
+
+    # 테이블 표시/숨기기 토글
+    def toggle_word_table(self):
+        if self.word_table.isVisible():
+            self.word_table.setVisible(False)
+            self.toggle_table_button.setText("테이블 보이기")
+        else:
+            self.word_table.setVisible(True)
+            self.toggle_table_button.setText("테이블 숨기기")
+
+    # 대본/오디오 재로딩
+    def on_reload(self):
+        idx = self.wordbook_combo.currentIndex()
+        words_dir = os.path.join(os.path.dirname(__file__), "words")
+        self.all_data_map = load_wordbooks_with_script_audio(words_dir)
