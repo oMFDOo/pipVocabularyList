@@ -32,7 +32,7 @@ class SmallWindow(QMainWindow):
         # 자동 넘어가기 활성/비활성 상태 (True: 자동 넘어가기 O, False: 없음)
         self.is_auto_on = True
 
-        # 5초마다 다음 단어로 넘어가는 타이머
+        # 7초마다 다음 단어로 넘어가는 타이머
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.auto_next_word)
 
@@ -181,7 +181,7 @@ class SmallWindow(QMainWindow):
 
         # auto_next가 켜져 있으면 타이머 시작
         if self.is_auto_on:
-            self.timer.start(5000)  # 5초 간격
+            self.timer.start(7000)  # 7초 간격
 
     # =====================
     #   토글 메서드들
@@ -210,7 +210,7 @@ class SmallWindow(QMainWindow):
         self.is_auto_on = not self.is_auto_on
         if self.is_auto_on:
             self.auto_toggle_button.setIcon(QIcon("assets/auto_activate_btn.png"))
-            self.timer.start(5000)  # 다시 타이머 시작
+            self.timer.start(7000)  # 다시 타이머 시작
         else:
             self.auto_toggle_button.setIcon(QIcon("assets/auto_deactivate_btn.png"))
             self.timer.stop()
@@ -219,7 +219,7 @@ class SmallWindow(QMainWindow):
     #   단어 이동 메서드들
     # =====================
     def auto_next_word(self):
-        """5초마다 다음 단어로 넘어감 (자동 모드 활성 시)"""
+        """7초마다 다음 단어로 넘어감 (자동 모드 활성 시)"""
         if not self.word_list:
             return
         if self.current_index < len(self.word_list) - 1:
@@ -240,7 +240,7 @@ class SmallWindow(QMainWindow):
 
         # auto 모드가 켜져 있으면 타이머 리셋
         if self.is_auto_on:
-            self.timer.start(5000)
+            self.timer.start(7000)
 
     def show_next_word(self):
         if not self.word_list:
@@ -253,7 +253,7 @@ class SmallWindow(QMainWindow):
 
         # auto 모드가 켜져 있으면 타이머 리셋
         if self.is_auto_on:
-            self.timer.start(5000)
+            self.timer.start(7000)
 
     # =====================
     #   단어 표시 갱신
@@ -302,7 +302,10 @@ class SmallWindow(QMainWindow):
 
         # TTS 재생 (is_tts_on == True 일 때만)
         if self.is_tts_on:
+            # 영어 단어 읽기
             play_tts_in_background(word, lang='en')
+            # 영어 읽은 후 1.7초 후에 한국어 뜻 읽기
+            QTimer.singleShot(1500, lambda: play_tts_in_background(meaning, lang='ko'))
 
         # 창 크기 조정
         self.adjust_window_size()
