@@ -8,8 +8,7 @@ from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
 # 위치, 효과, TTS 관련 유틸 (사용자 환경에 맞게 import 경로 수정)
 from window_position import move_to_bottom_left
 from effects import apply_shadow_effect
-from tts_utils import play_tts_in_background
-
+from tts_utils import play_tts_in_background  # TTS 함수 import
 
 class SmallWindow(QMainWindow):
     open_main_window_signal = pyqtSignal()  # 메인 창 열기 요청 신호
@@ -26,13 +25,19 @@ class SmallWindow(QMainWindow):
         # 예문 표시 여부 상태: 기본 True(표시)
         self.is_example_shown = True
 
-        # TTS 활성/비활성 상태 (True: 음성 재생 O, False: 음성 재생 X)
+        # TTS 활성/비활성 상태 (True: 단어, 뜻 TTS 재생 O, False: 재생 X)
         self.is_tts_on = True
+
+        # 예문 TTS 활성/비활성 상태 (True: 예문 TTS 재생 O, False: 재생 X)
+        self.is_example_tts_on = True
 
         # 자동 넘어가기 활성/비활성 상태 (True: 자동 넘어가기 O, False: 없음)
         self.is_auto_on = True
 
-        # 7초마다 다음 단어로 넘어가는 타이머
+        # 자동 다음 단어 간격: 예문 TTS 활성 시 14000ms, 비활성 시 7000ms
+        self.auto_interval = 14000 if self.is_example_tts_on else 7000
+
+        # 타이머: 지정된 간격마다 다음 단어로 넘어감
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.auto_next_word)
 
@@ -73,7 +78,7 @@ class SmallWindow(QMainWindow):
         center_btn_layout = QHBoxLayout()
         
         # -----------------------------
-        # 2. 예문 표시 토글 버튼
+        # 2. 예문 표시 토글 버튼 (예문 텍스트 보이기/숨기기)
         self.toggle_example_button = QPushButton(self)
         self.toggle_example_button.setStyleSheet("border: none;")
         self.toggle_example_button.setFixedSize(20, 20)
@@ -84,42 +89,50 @@ class SmallWindow(QMainWindow):
         center_btn_layout.addWidget(self.toggle_example_button)
 
         # -----------------------------
-        # 3. TTS(음성) 활성/비활성 토글 버튼
+        # 3. TTS(단어/뜻) 활성/비활성 토글 버튼
         self.sound_toggle_button = QPushButton(self)
         self.sound_toggle_button.setStyleSheet("border: none;")
         self.sound_toggle_button.setFixedSize(20, 20)
         self.sound_toggle_button.setIconSize(QSize(20, 20))
-        # 초기 상태: is_tts_on = True -> sound_activate_btn.png
         self.sound_toggle_button.setIcon(QIcon("assets/sound_activate_btn.png"))
-        self.sound_toggle_button.setToolTip("TTS 음성 켜기/끄기")
+        self.sound_toggle_button.setToolTip("단어/뜻 TTS 켜기/끄기")
         self.sound_toggle_button.clicked.connect(self.toggle_tts_sound)
         center_btn_layout.addWidget(self.sound_toggle_button)
+        
+        # -----------------------------
+        # 4. 예문 TTS 활성/비활성 토글 버튼
+        self.example_sound_toggle_button = QPushButton(self)
+        self.example_sound_toggle_button.setStyleSheet("border: none;")
+        self.example_sound_toggle_button.setFixedSize(20, 20)
+        self.example_sound_toggle_button.setIconSize(QSize(20, 20))
+        self.example_sound_toggle_button.setIcon(QIcon("assets/example_sound_activate_btn.png"))
+        self.example_sound_toggle_button.setToolTip("예문 TTS 켜기/끄기")
+        self.example_sound_toggle_button.clicked.connect(self.toggle_example_tts)
+        center_btn_layout.addWidget(self.example_sound_toggle_button)
 
         # -----------------------------
-        # 4. 자동 넘어가기 활성/비활성 토글 버튼
+        # 5. 자동 넘어가기 활성/비활성 토글 버튼
         self.auto_toggle_button = QPushButton(self)
         self.auto_toggle_button.setStyleSheet("border: none;")
         self.auto_toggle_button.setFixedSize(20, 20)
         self.auto_toggle_button.setIconSize(QSize(20, 20))
-        # 초기 상태: is_auto_on = True -> auto_activate_btn.png
         self.auto_toggle_button.setIcon(QIcon("assets/auto_activate_btn.png"))
         self.auto_toggle_button.setToolTip("자동 넘어가기 켜기/끄기")
         self.auto_toggle_button.clicked.connect(self.toggle_auto_next)
         center_btn_layout.addWidget(self.auto_toggle_button)
 
-        
         center_btn_layout.addStretch()
         layout.addLayout(center_btn_layout, 0, 1, Qt.AlignCenter)
 
         # -----------------------------
-        # 5. 단어 정보(현재 / 총 개수) 라벨
+        # 6. 단어 정보(현재 / 총 개수) 라벨
         self.word_info_label = QLabel(self)
         self.word_info_label.setAlignment(Qt.AlignRight | Qt.AlignBottom)
         self.word_info_label.setStyleSheet("font-family: NanumSquareL; font-size: 13px; padding-right: 3px;")
         layout.addWidget(self.word_info_label, 0, 2, Qt.AlignRight)
 
         # -----------------------------
-        # 6. 이전 단어 버튼
+        # 7. 이전 단어 버튼
         prev_button = QPushButton(self)
         prev_button.setIcon(QIcon("assets/word_previous_btn.png"))
         prev_button.setIconSize(QSize(20, 20))
@@ -129,26 +142,25 @@ class SmallWindow(QMainWindow):
         layout.addWidget(prev_button, 1, 0, Qt.AlignLeft | Qt.AlignVCenter)
 
         # -----------------------------
-        # 7. 단어 표시 라벨
+        # 8. 단어 표시 라벨
         self.word_display = QLabel(self)
         self.word_display.setAlignment(Qt.AlignTop | Qt.AlignCenter)
         self.word_display.setWordWrap(True)
         self.word_display.setStyleSheet("color: black; font-size: 16px;")
         layout.addWidget(self.word_display, 1, 1, 1, 4, Qt.AlignCenter)  
-        # span을 1행 4열로 늘려서 중앙에 좀 더 넓게 배치
+        # (1행 4열로 배치)
 
         # -----------------------------
-        # 8. 예문 표시 라벨
+        # 9. 예문 표시 라벨
         self.example_display = QLabel(self)
         self.example_display.setAlignment(Qt.AlignTop | Qt.AlignCenter)
         self.example_display.setWordWrap(False)
         self.example_display.setStyleSheet("color: gray; font-size: 12px;")
         self.example_display.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        layout.addWidget(self.example_display, 2, 1, 1, 4, Qt.AlignCenter) 
-        # 마찬가지로 span 조절
+        layout.addWidget(self.example_display, 2, 1, 1, 4, Qt.AlignCenter)
 
         # -----------------------------
-        # 9. 다음 단어 버튼
+        # 10. 다음 단어 버튼
         next_button = QPushButton(self)
         next_button.setIcon(QIcon("assets/word_next_btn.png"))
         next_button.setIconSize(QSize(20, 20))
@@ -163,7 +175,7 @@ class SmallWindow(QMainWindow):
         layout.setRowStretch(1, 3)
         layout.setRowStretch(2, 1)
 
-        # 0~5열을 사용
+        # 0~5열 사용
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
         layout.setColumnStretch(2, 1)
@@ -179,38 +191,49 @@ class SmallWindow(QMainWindow):
         self.current_index = 0
         self.update_word_display()
 
-        # auto_next가 켜져 있으면 타이머 시작
+        # auto_next가 켜져 있으면 타이머 시작 (설정된 인터벌 사용)
         if self.is_auto_on:
-            self.timer.start(7000)  # 7초 간격
+            self.timer.start(self.auto_interval)
 
     # =====================
     #   토글 메서드들
     # =====================
     def toggle_example(self):
-        """예문 표시 여부를 토글"""
+        """예문 표시 여부를 토글 (예문 텍스트 보이기/숨기기)"""
         self.is_example_shown = not self.is_example_shown
         if self.is_example_shown:
-            # 예문이 보이는 상태 -> 버튼 아이콘: hide_example
             self.toggle_example_button.setIcon(QIcon("assets/hide_example.png"))
         else:
-            # 예문 숨김 상태 -> 버튼 아이콘: show_example
             self.toggle_example_button.setIcon(QIcon("assets/show_example.png"))
         self.update_word_display()
 
     def toggle_tts_sound(self):
-        """TTS(음성) 재생 여부를 토글"""
+        """단어/뜻 TTS 재생 여부 토글"""
         self.is_tts_on = not self.is_tts_on
         if self.is_tts_on:
             self.sound_toggle_button.setIcon(QIcon("assets/sound_activate_btn.png"))
         else:
             self.sound_toggle_button.setIcon(QIcon("assets/sound_mute_btn.png"))
 
+    def toggle_example_tts(self):
+        """예문 TTS 재생 여부 토글 및 자동 다음 간격 조정"""
+        self.is_example_tts_on = not self.is_example_tts_on
+        if self.is_example_tts_on:
+            self.example_sound_toggle_button.setIcon(QIcon("assets/example_sound_activate_btn.png"))
+            self.auto_interval = 14000
+        else:
+            self.example_sound_toggle_button.setIcon(QIcon("assets/example_sound_mute_btn.png"))
+            self.auto_interval = 7000
+        # 자동 모드가 켜진 경우 타이머 간격 재설정
+        if self.is_auto_on:
+            self.timer.start(self.auto_interval)
+
     def toggle_auto_next(self):
-        """단어 자동 넘기기 여부를 토글"""
+        """자동 넘어가기 여부 토글"""
         self.is_auto_on = not self.is_auto_on
         if self.is_auto_on:
             self.auto_toggle_button.setIcon(QIcon("assets/auto_activate_btn.png"))
-            self.timer.start(7000)  # 다시 타이머 시작
+            self.timer.start(self.auto_interval)
         else:
             self.auto_toggle_button.setIcon(QIcon("assets/auto_deactivate_btn.png"))
             self.timer.stop()
@@ -219,7 +242,7 @@ class SmallWindow(QMainWindow):
     #   단어 이동 메서드들
     # =====================
     def auto_next_word(self):
-        """7초마다 다음 단어로 넘어감 (자동 모드 활성 시)"""
+        """설정된 간격마다 다음 단어로 넘어감 (자동 모드 활성 시)"""
         if not self.word_list:
             return
         if self.current_index < len(self.word_list) - 1:
@@ -234,13 +257,12 @@ class SmallWindow(QMainWindow):
         if self.current_index > 0:
             self.current_index -= 1
         else:
-            # 뒤로 돌리면 마지막 단어로
             self.current_index = len(self.word_list) - 1
         self.update_word_display()
 
-        # auto 모드가 켜져 있으면 타이머 리셋
+        # 자동 모드가 켜져 있으면 타이머 리셋 (설정된 간격 사용)
         if self.is_auto_on:
-            self.timer.start(7000)
+            self.timer.start(self.auto_interval)
 
     def show_next_word(self):
         if not self.word_list:
@@ -251,15 +273,20 @@ class SmallWindow(QMainWindow):
             self.current_index = 0
         self.update_word_display()
 
-        # auto 모드가 켜져 있으면 타이머 리셋
+        # 자동 모드가 켜져 있으면 타이머 리셋
         if self.is_auto_on:
-            self.timer.start(7000)
+            self.timer.start(self.auto_interval)
 
     # =====================
     #   단어 표시 갱신
     # =====================
     def update_word_display(self):
-        """현재 단어 및 정보 표시 (TTS 재생 포함)"""
+        """현재 단어 및 정보 표시 (TTS 재생 포함)
+           - 단어: 즉시 TTS 재생
+           - 뜻: 2000ms 후 TTS 재생
+           - 예문: (예문 TTS가 활성일 경우) 6000ms 후 영어, 9000ms 후 한글 TTS 재생
+           단, 예문은 '-'로 시작하며 '+' 구분자가 있는 경우 처리함.
+        """
         if not self.word_list:
             self.word_display.setText("단어장이 설정되지 않았습니다.")
             self.example_display.setText("")
@@ -281,7 +308,7 @@ class SmallWindow(QMainWindow):
             f"<p style='margin: 0 0 3px 0; font-family: {pretendard_regular}; font-size: 14px;'>{meaning}</p>"
         )
 
-        # 예문 표시
+        # 예문 텍스트 표시 (예문이 '-'로 시작하면 처리)
         if self.is_example_shown and example.startswith('-'):
             if '+' in example:
                 parts = example[1:].split('+', 1)  # '-' 제거 후 split
@@ -297,15 +324,26 @@ class SmallWindow(QMainWindow):
         else:
             self.example_display.setText("")
 
-        # 단어 정보 라벨 (ex. 1/10)
+        # 단어 정보 (현재/총 개수)
         self.word_info_label.setText(f"{self.current_index + 1}/{len(self.word_list)}")
 
-        # TTS 재생 (is_tts_on == True 일 때만)
+        # TTS 재생 (TTS가 활성화 되어 있을 때만)
         if self.is_tts_on:
-            # 영어 단어 읽기
+            # 단어 영어 읽기 즉시 실행
             play_tts_in_background(word, lang='en')
-            # 영어 읽은 후 1.7초 후에 한국어 뜻 읽기
-            QTimer.singleShot(1500, lambda: play_tts_in_background(meaning, lang='ko'))
+            # 2000ms 후에 단어 뜻(한글) 읽기
+            QTimer.singleShot(2000, lambda: play_tts_in_background(meaning, lang='ko'))
+
+            # 예문 TTS (예문 TTS가 활성이고, 예문이 '-'로 시작하며 '+' 구분자가 있는 경우)
+            if self.is_example_tts_on and example and example.startswith('-') and '+' in example:
+                parts = example[1:].split('+', 1)
+                if len(parts) == 2:
+                    eng_example = parts[0].strip()
+                    kor_example = parts[1].strip()
+                    # 6000ms 후에 예문 영어 읽기
+                    QTimer.singleShot(6000, lambda: play_tts_in_background(eng_example, lang='en'))
+                    # 9000ms 후에 예문 한글 읽기
+                    QTimer.singleShot(9000, lambda: play_tts_in_background(kor_example, lang='ko'))
 
         # 창 크기 조정
         self.adjust_window_size()
