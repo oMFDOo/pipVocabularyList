@@ -125,7 +125,7 @@ class StudyPage(QWidget):
         left_label.setStyleSheet("font-family: 'esamanru Bold'; font-size: 23px;")
 
         self.list_widget = QListWidget()
-        self.list_widget.setStyleSheet("font-family: 'Pretendard'; font-size: 14px;")
+        self.list_widget.setStyleSheet("font-family: 'Pretendard'; font-size: 14px; height: 200px; width: 100px;")
         self.list_widget.setSelectionMode(QListWidget.SingleSelection)
         self.list_widget.itemClicked.connect(self.display_wordbook)
 
