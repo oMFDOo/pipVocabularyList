@@ -29,7 +29,7 @@ class SmallWindow(QMainWindow):
         self.is_tts_on = True
 
         # 예문 TTS 활성/비활성 상태 (True: 예문 TTS 재생 O, False: 재생 X)
-        self.is_example_tts_on = True
+        self.is_example_tts_on = False
 
         # 자동 넘어가기 활성/비활성 상태 (True: 자동 넘어가기 O, False: 없음)
         self.is_auto_on = True
@@ -105,7 +105,7 @@ class SmallWindow(QMainWindow):
         self.example_sound_toggle_button.setStyleSheet("border: none;")
         self.example_sound_toggle_button.setFixedSize(20, 20)
         self.example_sound_toggle_button.setIconSize(QSize(20, 20))
-        self.example_sound_toggle_button.setIcon(QIcon("assets/example_sound_activate_btn.png"))
+        self.example_sound_toggle_button.setIcon(QIcon("assets/example_sound_mute_btn.png"))
         self.example_sound_toggle_button.setToolTip("예문 TTS 켜기/끄기")
         self.example_sound_toggle_button.clicked.connect(self.toggle_example_tts)
         center_btn_layout.addWidget(self.example_sound_toggle_button)
