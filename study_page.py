@@ -3,7 +3,7 @@ import shutil
 import random  # 단어 섞기를 위해 추가
 from datetime import datetime
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QListWidget, QListWidgetItem, QLineEdit, QTableWidget, QTableWidgetItem,
     QRadioButton, QButtonGroup, QComboBox, QFileDialog, QMessageBox
 )
@@ -203,9 +203,16 @@ class StudyPage(QWidget):
         self.shuffle_btn.setStyleSheet("border: none; background-color: #ffffff; width: 24px; height: 24px; padding: 0px; margin: 0px;")
         self.shuffle_btn.clicked.connect(self.shuffle_words)
 
+        # [추가] 전체 복사 버튼: 현재 표에 출력된 단어들을 클립보드로 복사
+        self.copy_all_btn = QPushButton("전체 복사")
+        self.copy_all_btn.setStyleSheet("font-family: 'Pretendard'; font-size: 16px;")
+        self.copy_all_btn.setToolTip("현재 단어장의 모든 내용을 클립보드에 복사")
+        self.copy_all_btn.clicked.connect(self.copy_all_words)
+
         table_btn_layout.addWidget(self.add_row_btn)
         table_btn_layout.addWidget(self.delete_row_btn)
         table_btn_layout.addWidget(self.shuffle_btn)
+        table_btn_layout.addWidget(self.copy_all_btn)
         table_btn_layout.addStretch(1)
 
         # (2-2-4) 표출 순서(영단어→뜻 / 뜻→영단어)
@@ -584,3 +591,27 @@ class StudyPage(QWidget):
             return
 
         self.open_small_window_signal.emit(word_list)
+
+    def copy_all_words(self):
+        """
+        현재 word_table에 표시된 단어들을 모두 읽어서,
+        탭(\t)으로 구분된 텍스트 형식으로 클립보드에 복사하는 기능
+        """
+        row_count = self.word_table.rowCount()
+        if row_count == 0:
+            QMessageBox.warning(self, "경고", "복사할 내용이 없습니다.")
+            return
+
+        copied_lines = []
+        for r in range(row_count):
+            col0 = self.word_table.item(r, 0).text() if self.word_table.item(r, 0) else ""
+            col1 = self.word_table.item(r, 1).text() if self.word_table.item(r, 1) else ""
+            col2 = self.word_table.item(r, 2).text() if self.word_table.item(r, 2) else ""
+            # 각 행의 데이터를 탭으로 구분하여 문자열로 만듭니다.
+            line = "\t".join([col0, col1, col2])
+            copied_lines.append(line)
+
+        # 모든 행을 줄바꿈 문자로 연결하여 최종 문자열 생성
+        copied_text = "\n".join(copied_lines)
+        QApplication.clipboard().setText(copied_text)
+        QMessageBox.information(self, "복사 완료", "현재 단어장의 모든 내용이 클립보드에 복사되었습니다.")
